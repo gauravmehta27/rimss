@@ -1,0 +1,249 @@
+<div class="row g-3">
+  <!-- Filters -->
+  <div class="col-12 col-lg-3">
+    <button
+      type="button"
+      class="btn btn-outline-secondary w-100 d-lg-none mb-2"
+      (click)="filtersOpen.set(!filtersOpen())"
+      [attr.aria-expanded]="filtersOpen()"
+    >
+      <i class="bi bi-sliders me-1"></i>Filters
+      @if (store.filterCount() > 0) {
+        <span class="badge text-bg-primary ms-1">{{ store.filterCount() }}</span>
+      }
+    </button>
+
+    <aside class="card shadow-sm filters" [class.filters--open]="filtersOpen()">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h2 class="card-title h6 mb-0">Refine</h2>
+        @if (store.filterCount() > 0) {
+          <button type="button" class="btn btn-sm btn-link p-0" (click)="clearFilters()">
+            Clear all
+          </button>
+        }
+      </div>
+
+      <div class="card-body">
+        @let facets = store.facets();
+
+        @if (facets) {
+          <fieldset class="mb-3">
+            <legend class="form-label fw-semibold small text-uppercase">Category</legend>
+            @for (category of facets.categories; track category.id) {
+              <div class="form-check">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  [id]="'cat-' + category.id"
+                  [checked]="isSelected('categoryIds', category.id)"
+                  (change)="toggle('categoryIds', category.id)"
+                />
+                <label
+                  class="form-check-label d-flex justify-content-between"
+                  [for]="'cat-' + category.id"
+                >
+                  <span>{{ category.name }}</span>
+                  <span class="text-body-secondary small">{{ category.count }}</span>
+                </label>
+              </div>
+            }
+          </fieldset>
+
+          <fieldset class="mb-3">
+            <legend class="form-label fw-semibold small text-uppercase">Shop for</legend>
+            <div class="d-flex flex-wrap gap-2">
+              @for (audience of facets.audiences; track audience.id) {
+                <button
+                  type="button"
+                  class="btn btn-sm"
+                  [class.btn-primary]="isSelected('audiences', audience.id)"
+                  [class.btn-outline-secondary]="!isSelected('audiences', audience.id)"
+                  (click)="toggle('audiences', audience.id)"
+                >
+                  {{ audience.name }}
+                </button>
+              }
+            </div>
+          </fieldset>
+
+          <fieldset class="mb-3">
+            <legend class="form-label fw-semibold small text-uppercase">Colour</legend>
+            <div class="d-flex flex-wrap gap-2">
+              @for (color of facets.colors; track color.id) {
+                <button
+                  type="button"
+                  class="swatch"
+                  [class.swatch--active]="isSelected('colors', color.id)"
+                  [style.background]="color.hex"
+                  [title]="color.name + ' (' + color.count + ')'"
+                  [attr.aria-label]="color.name"
+                  [attr.aria-pressed]="isSelected('colors', color.id)"
+                  (click)="toggle('colors', color.id)"
+                ></button>
+              }
+            </div>
+          </fieldset>
+
+          <fieldset class="mb-3">
+            <legend class="form-label fw-semibold small text-uppercase">Size</legend>
+            <div class="d-flex flex-wrap gap-1">
+              @for (size of facets.sizes; track size.id) {
+                <button
+                  type="button"
+                  class="btn btn-sm px-2"
+                  [class.btn-dark]="isSelected('sizes', size.id)"
+                  [class.btn-outline-secondary]="!isSelected('sizes', size.id)"
+                  (click)="toggle('sizes', size.id)"
+                >
+                  {{ size.name }}
+                </button>
+              }
+            </div>
+          </fieldset>
+
+          <fieldset class="mb-3">
+            <legend class="form-label fw-semibold small text-uppercase">Price</legend>
+            <div class="d-flex gap-2">
+              <input
+                type="number"
+                class="form-control form-control-sm"
+                placeholder="Min"
+                [attr.min]="facets.priceRange.min"
+                [ngModel]="store.query().minPrice"
+                (ngModelChange)="
+                  patch({ minPrice: $event === null || $event === '' ? null : +$event })
+                "
+                aria-label="Minimum price"
+              />
+              <input
+                type="number"
+                class="form-control form-control-sm"
+                placeholder="Max"
+                [attr.max]="facets.priceRange.max"
+                [ngModel]="store.query().maxPrice"
+                (ngModelChange)="
+                  patch({ maxPrice: $event === null || $event === '' ? null : +$event })
+                "
+                aria-label="Maximum price"
+              />
+            </div>
+            <small class="text-body-secondary"
+              >Range {{ facets.priceRange.min }} – {{ facets.priceRange.max }}</small
+            >
+          </fieldset>
+
+          <div class="form-check form-switch">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              id="onSale"
+              [checked]="store.query().onSale"
+              (change)="patch({ onSale: !store.query().onSale })"
+            />
+            <label class="form-check-label" for="onSale">On sale only</label>
+          </div>
+          <div class="form-check form-switch">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              id="inStock"
+              [checked]="store.query().inStock"
+              (change)="patch({ inStock: !store.query().inStock })"
+            />
+            <label class="form-check-label" for="inStock">In stock only</label>
+          </div>
+        } @else {
+          <p class="text-body-secondary small mb-0">Loading filters…</p>
+        }
+      </div>
+    </aside>
+  </div>
+
+  <!-- Results -->
+  <div class="col-12 col-lg-9">
+    <div class="card shadow-sm mb-3">
+      <div class="card-body py-3">
+        <form class="row g-2 align-items-center" (ngSubmit)="submitSearch()">
+          <div class="col-12 col-md-6">
+            <label class="visually-hidden" for="catalogSearch">Search products</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-search"></i></span>
+              <input
+                id="catalogSearch"
+                type="search"
+                class="form-control"
+                placeholder="Search the collection…"
+                [ngModel]="searchTerm()"
+                (ngModelChange)="searchTerm.set($event)"
+                name="catalogSearch"
+              />
+              <button class="btn btn-primary" type="submit">Search</button>
+            </div>
+          </div>
+          <div class="col-8 col-md-4">
+            <label class="visually-hidden" for="sortBy">Sort by</label>
+            <select
+              id="sortBy"
+              class="form-select"
+              [ngModel]="store.query().sort"
+              (ngModelChange)="patch({ sort: $event })"
+              name="sortBy"
+            >
+              @for (option of sortOptions; track option.value) {
+                <option [value]="option.value">{{ option.label }}</option>
+              }
+            </select>
+          </div>
+          <div class="col-4 col-md-2 text-md-end">
+            <span class="badge text-bg-light border">{{ store.totalCount() }} items</span>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    @if (store.error(); as error) {
+      <div class="alert alert-danger d-flex align-items-center" role="alert">
+        <i class="bi bi-exclamation-triangle me-2"></i>
+        <div>
+          <strong>{{ error.code }}</strong> — {{ error.message }}
+        </div>
+      </div>
+    }
+
+    @if (store.loading()) {
+      <div class="row row-cols-2 row-cols-md-3 row-cols-xxl-4 g-3">
+        <app-card-skeleton [count]="8" />
+      </div>
+    } @else if (store.hasResults()) {
+      <div class="row row-cols-2 row-cols-md-3 row-cols-xxl-4 g-3">
+        @for (product of store.items(); track product.id) {
+          <div class="col">
+            <app-product-card [product]="product" (addToCart)="addToCart($event)" />
+          </div>
+        }
+      </div>
+
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-3">
+        <small class="text-body-secondary">
+          Page {{ store.query().page }} of {{ store.totalPages() }} ·
+          {{ store.totalCount() }} products
+        </small>
+        <app-pagination
+          [page]="store.query().page ?? 1"
+          [totalPages]="store.totalPages()"
+          (pageChange)="goToPage($event)"
+        />
+      </div>
+    } @else {
+      <app-empty-state
+        icon="bi-search"
+        title="No products matched your search"
+        message="Try a broader term or remove a filter or two."
+      >
+        <button type="button" class="btn btn-outline-primary mt-3" (click)="clearFilters()">
+          Reset filters
+        </button>
+      </app-empty-state>
+    }
+  </div>
+</div>

@@ -1,0 +1,182 @@
+@if (loading()) {
+  <div class="row g-4 placeholder-glow">
+    <div class="col-12 col-lg-6"><span class="placeholder col-12 showcase__hero"></span></div>
+    <div class="col-12 col-lg-6">
+      <span class="placeholder col-8 mb-2"></span>
+      <span class="placeholder col-5 mb-2"></span>
+      <span class="placeholder col-12 mb-2"></span>
+      <span class="placeholder col-10"></span>
+    </div>
+  </div>
+} @else if (product(); as item) {
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb small">
+      <li class="breadcrumb-item"><a routerLink="/home">Home</a></li>
+      <li class="breadcrumb-item"><a routerLink="/catalog">Shop</a></li>
+      <li class="breadcrumb-item">
+        <a [routerLink]="['/catalog']" [queryParams]="{ categories: item.categoryId }">{{
+          item.categoryName
+        }}</a>
+      </li>
+      <li class="breadcrumb-item active" aria-current="page">{{ item.name }}</li>
+    </ol>
+  </nav>
+
+  <div class="row g-4">
+    <div class="col-12 col-lg-6">
+      <div
+        class="card shadow-sm overflow-hidden"
+        [style.background-image]="'url(' + artwork() + ')'"
+        style="background-size: cover; background-position: center"
+      >
+        <img
+          class="showcase__hero"
+          [src]="photo()"
+          [alt]="item.name"
+          width="800"
+          height="600"
+          decoding="async"
+        />
+      </div>
+      <div class="row row-cols-3 g-2 mt-1">
+        @for (tag of item.tags; track tag) {
+          <div class="col">
+            <span class="badge text-bg-light border w-100 py-2">{{ tag }}</span>
+          </div>
+        }
+      </div>
+    </div>
+
+    <div class="col-12 col-lg-6">
+      <p class="text-uppercase text-body-secondary small mb-1">
+        {{ item.brand }} · {{ item.categoryName }}
+      </p>
+      <h1 class="h3">{{ item.name }}</h1>
+      <app-rating-stars [value]="item.rating" [reviewCount]="item.reviewCount" />
+
+      <div class="d-flex align-items-baseline gap-2 my-3">
+        <span class="fs-3 fw-semibold">{{ item.price | currency: item.currency }}</span>
+        @if (item.discountPercent > 0) {
+          <span class="text-body-secondary text-decoration-line-through">{{
+            item.listPrice | currency: item.currency
+          }}</span>
+          <span class="badge text-bg-danger">Save {{ item.discountPercent }}%</span>
+        }
+      </div>
+
+      <p class="text-body-secondary">{{ item.description }}</p>
+
+      <div class="mb-3">
+        <span class="form-label fw-semibold small text-uppercase d-block">Colour</span>
+        <div class="d-flex gap-2">
+          @for (color of item.colors; track color) {
+            <button
+              type="button"
+              class="swatch text-capitalize"
+              [class.swatch--active]="selectedColor() === color"
+              (click)="selectedColor.set(color)"
+              [attr.aria-pressed]="selectedColor() === color"
+            >
+              {{ color }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <span class="form-label fw-semibold small text-uppercase d-block">Size</span>
+        <div class="d-flex flex-wrap gap-2">
+          @for (size of item.sizes; track size) {
+            <button
+              type="button"
+              class="btn btn-sm"
+              [class.btn-dark]="selectedSize() === size"
+              [class.btn-outline-secondary]="selectedSize() !== size"
+              (click)="selectedSize.set(size)"
+            >
+              {{ size }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <div class="d-flex align-items-center gap-3 mb-3">
+        <div class="input-group input-group-sm" style="width: 8rem">
+          <button
+            class="btn btn-outline-secondary"
+            type="button"
+            (click)="changeQuantity(-1)"
+            aria-label="Decrease quantity"
+          >
+            <i class="bi bi-dash"></i>
+          </button>
+          <span class="form-control text-center">{{ quantity() }}</span>
+          <button
+            class="btn btn-outline-secondary"
+            type="button"
+            (click)="changeQuantity(1)"
+            aria-label="Increase quantity"
+          >
+            <i class="bi bi-plus"></i>
+          </button>
+        </div>
+
+        @if (selectedVariant(); as variant) {
+          @if (variant.quantity === 0) {
+            <span class="badge text-bg-secondary">Out of stock</span>
+          } @else if (variant.quantity <= variant.reorderLevel) {
+            <span class="badge text-bg-warning">Only {{ variant.quantity }} left</span>
+          } @else {
+            <span class="badge text-bg-success">In stock ({{ variant.quantity }})</span>
+          }
+        } @else {
+          <span class="badge text-bg-secondary">Combination unavailable</span>
+        }
+      </div>
+
+      <div class="d-grid gap-2 d-sm-flex">
+        <button
+          type="button"
+          class="btn btn-primary btn-lg px-4"
+          [disabled]="!canAdd()"
+          (click)="addToBag()"
+        >
+          <i class="bi bi-bag-plus me-1"></i>Add to bag
+        </button>
+        <a class="btn btn-outline-secondary btn-lg px-4" routerLink="/cart">View bag</a>
+      </div>
+
+      <dl class="row small mt-4 mb-0">
+        <dt class="col-5 col-sm-4 text-body-secondary">Material</dt>
+        <dd class="col-7 col-sm-8">{{ item.material }}</dd>
+        <dt class="col-5 col-sm-4 text-body-secondary">Collection</dt>
+        <dd class="col-7 col-sm-8">{{ item.audience }} · {{ item.department }}</dd>
+        <dt class="col-5 col-sm-4 text-body-secondary">Added</dt>
+        <dd class="col-7 col-sm-8">{{ item.createdAt | date: 'mediumDate' }}</dd>
+        <dt class="col-5 col-sm-4 text-body-secondary">Total stock</dt>
+        <dd class="col-7 col-sm-8">
+          {{ item.stock }} units across {{ item.variants.length }} SKUs
+        </dd>
+      </dl>
+    </div>
+  </div>
+
+  @if (item.related.length) {
+    <h2 class="h5 mt-5 mb-3">You may also like</h2>
+    <div class="row row-cols-2 row-cols-md-4 g-3">
+      @for (related of item.related; track related.id) {
+        <div class="col">
+          <app-product-card [product]="related" (addToCart)="addRelatedToBag($event)" />
+        </div>
+      }
+    </div>
+  }
+} @else {
+  <app-empty-state
+    icon="bi-bag-x"
+    title="Product not found"
+    message="This piece may have sold out or been retired."
+  >
+    <a class="btn btn-primary mt-3" routerLink="/catalog">Back to the collection</a>
+  </app-empty-state>
+}

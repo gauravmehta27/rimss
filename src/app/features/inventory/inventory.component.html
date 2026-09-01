@@ -1,0 +1,216 @@
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+  <div>
+    <h1 class="h4 mb-0">Stock control desk</h1>
+    <p class="text-body-secondary small mb-0">Live SKU positions across the YCompany range.</p>
+  </div>
+  <span class="badge text-bg-light border">Module: inventory · v1.0.0</span>
+</div>
+
+@if (summary(); as data) {
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-xl-3">
+      <div class="small-box text-bg-primary">
+        <div class="inner">
+          <h3>{{ data.totalUnits | number }}</h3>
+          <p>Units on hand</p>
+        </div>
+        <i class="small-box-icon bi bi-box-seam"></i>
+      </div>
+    </div>
+    <div class="col-6 col-xl-3">
+      <div class="small-box text-bg-warning">
+        <div class="inner">
+          <h3>{{ data.lowStock | number }}</h3>
+          <p>SKUs below reorder level</p>
+        </div>
+        <i class="small-box-icon bi bi-exclamation-triangle"></i>
+      </div>
+    </div>
+    <div class="col-6 col-xl-3">
+      <div class="small-box text-bg-danger">
+        <div class="inner">
+          <h3>{{ data.outOfStock | number }}</h3>
+          <p>SKUs out of stock</p>
+        </div>
+        <i class="small-box-icon bi bi-slash-circle"></i>
+      </div>
+    </div>
+    <div class="col-6 col-xl-3">
+      <div class="small-box text-bg-success">
+        <div class="inner">
+          <h3>{{ data.stockValue | currency: 'INR' : 'symbol' : '1.0-0' }}</h3>
+          <p>Inventory value</p>
+        </div>
+        <i class="small-box-icon bi bi-cash-stack"></i>
+      </div>
+    </div>
+  </div>
+
+  <div class="card shadow-sm mb-3">
+    <div class="card-body">
+      <div class="d-flex justify-content-between small mb-1">
+        <span>Stock health</span>
+        <span class="fw-semibold">{{ healthPercent() }}%</span>
+      </div>
+      <div
+        class="progress"
+        role="progressbar"
+        [attr.aria-valuenow]="healthPercent()"
+        aria-valuemin="0"
+        aria-valuemax="100"
+      >
+        <div class="progress-bar bg-success" [style.width.%]="healthPercent()"></div>
+      </div>
+    </div>
+  </div>
+}
+
+<div class="card shadow-sm">
+  <div class="card-header d-flex flex-wrap gap-2 justify-content-between align-items-center">
+    <div class="btn-group btn-group-sm" role="group" aria-label="Filter by stock status">
+      @for (filter of statusFilters; track filter.value) {
+        <button
+          type="button"
+          class="btn"
+          [class.btn-primary]="status() === filter.value"
+          [class.btn-outline-primary]="status() !== filter.value"
+          (click)="setStatus(filter.value)"
+        >
+          {{ filter.label }}
+        </button>
+      }
+    </div>
+
+    <div class="input-group input-group-sm" style="max-width: 18rem">
+      <span class="input-group-text"><i class="bi bi-search"></i></span>
+      <input
+        type="search"
+        class="form-control"
+        placeholder="SKU, product or category"
+        aria-label="Search inventory"
+        [ngModel]="searchTerm()"
+        (ngModelChange)="onSearch($event)"
+      />
+    </div>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <caption class="visually-hidden">
+        Inventory positions by SKU
+      </caption>
+      <thead class="table-light">
+        <tr>
+          <th scope="col">SKU</th>
+          <th scope="col">Product</th>
+          <th scope="col" class="d-none d-md-table-cell">Variant</th>
+          <th scope="col" class="text-end">Price</th>
+          <th scope="col" class="text-center">On hand</th>
+          <th scope="col">Status</th>
+          <th scope="col" class="text-end">Adjust</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of rows(); track trackBySku($index, row)) {
+          <tr [class.opacity-50]="busySku() === row.sku">
+            <td class="font-monospace small">{{ row.sku }}</td>
+            <td>
+              <span class="d-block">{{ row.productName }}</span>
+              <small class="text-body-secondary">{{ row.categoryName }}</small>
+            </td>
+            <td class="d-none d-md-table-cell text-capitalize">{{ row.color }} · {{ row.size }}</td>
+            <td class="text-end">{{ row.price | currency: 'INR' }}</td>
+            <td class="text-center fw-semibold">{{ row.quantity }}</td>
+            <td>
+              @switch (row.status) {
+                @case ('out-of-stock') {
+                  <span class="badge text-bg-danger">Out of stock</span>
+                }
+                @case ('low') {
+                  <span class="badge text-bg-warning">Low ({{ row.reorderLevel }} min)</span>
+                }
+                @default {
+                  <span class="badge text-bg-success">Healthy</span>
+                }
+              }
+            </td>
+            <td class="text-end">
+              <div class="btn-group btn-group-sm">
+                <button
+                  type="button"
+                  class="btn btn-outline-secondary"
+                  [disabled]="row.quantity === 0 || busySku() === row.sku"
+                  (click)="adjust(row, -1)"
+                  [attr.aria-label]="'Decrease stock for ' + row.sku"
+                >
+                  <i class="bi bi-dash"></i>
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-outline-secondary"
+                  [disabled]="busySku() === row.sku"
+                  (click)="adjust(row, 1)"
+                  [attr.aria-label]="'Increase stock for ' + row.sku"
+                >
+                  <i class="bi bi-plus"></i>
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-outline-primary"
+                  [disabled]="busySku() === row.sku"
+                  (click)="adjust(row, 25)"
+                >
+                  +25
+                </button>
+              </div>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="7" class="p-0">
+              <app-empty-state
+                icon="bi-box"
+                title="No SKUs match"
+                message="Change the status filter or clear the search."
+              />
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card-footer d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <small class="text-body-secondary">
+      {{ result()?.totalCount ?? 0 }} SKUs · page {{ page() }} of {{ totalPages() }}
+      @if (loading()) {
+        <span
+          class="spinner-border spinner-border-sm ms-2"
+          role="status"
+          aria-label="Loading"
+        ></span>
+      }
+    </small>
+    <app-pagination [page]="page()" [totalPages]="totalPages()" (pageChange)="page.set($event)" />
+  </div>
+</div>
+
+@if (summary()?.movements?.length) {
+  <div class="card shadow-sm mt-3">
+    <div class="card-header"><h2 class="card-title h6 mb-0">Recent stock movements</h2></div>
+    <ul class="list-group list-group-flush">
+      @for (movement of summary()!.movements; track movement.id) {
+        <li class="list-group-item d-flex justify-content-between align-items-center small">
+          <span>
+            <span class="font-monospace">{{ movement.sku }}</span>
+            <span class="text-body-secondary ms-2">{{ movement.productName }}</span>
+          </span>
+          <span>
+            {{ movement.previous }} → <strong>{{ movement.next }}</strong>
+            <span class="text-body-secondary ms-2">{{ movement.at | date: 'shortTime' }}</span>
+          </span>
+        </li>
+      }
+    </ul>
+  </div>
+}

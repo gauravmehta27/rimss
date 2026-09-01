@@ -1,0 +1,34 @@
+.filters {
+  position: sticky;
+  top: 4.5rem;
+}
+
+.swatch {
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  border: 2px solid var(--bs-border-color);
+  border-radius: 50%;
+  cursor: pointer;
+
+  &--active {
+    outline: 2px solid var(--bs-primary);
+    outline-offset: 2px;
+  }
+}
+
+legend {
+  float: none;
+  width: auto;
+}
+
+@media (max-width: 991.98px) {
+  .filters {
+    position: static;
+    display: none;
+
+    &--open {
+      display: block;
+    }
+  }
+}

@@ -1,0 +1,135 @@
+<h1 class="h4 mb-3">Your bag</h1>
+
+@if (cart.isEmpty()) {
+  <app-empty-state
+    icon="bi-bag"
+    title="Your bag is empty"
+    message="Add a piece from the collection to get started."
+  >
+    <a class="btn btn-primary mt-3" routerLink="/catalog">Shop the collection</a>
+  </app-empty-state>
+} @else {
+  <div class="row g-3">
+    <div class="col-12 col-lg-8">
+      <div class="card shadow-sm">
+        <ul class="list-group list-group-flush">
+          @for (line of cart.lines(); track line.sku) {
+            <li class="list-group-item">
+              <div class="d-flex gap-3 align-items-center flex-wrap">
+                <img
+                  [src]="photo(line)"
+                  [alt]="line.name"
+                  width="88"
+                  height="66"
+                  class="rounded"
+                  style="object-fit: cover"
+                />
+                <div class="flex-grow-1" style="min-width: 12rem">
+                  <p class="mb-0 fw-semibold">{{ line.name }}</p>
+                  <small class="text-body-secondary text-capitalize"
+                    >{{ line.color }} · {{ line.size }}</small
+                  >
+                  <br />
+                  <small class="font-monospace text-body-secondary">{{ line.sku }}</small>
+                </div>
+                <div class="input-group input-group-sm" style="width: 7.5rem">
+                  <button
+                    class="btn btn-outline-secondary"
+                    type="button"
+                    (click)="cart.setQuantity(line.sku, line.quantity - 1)"
+                    [attr.aria-label]="'Decrease quantity of ' + line.name"
+                  >
+                    <i class="bi bi-dash"></i>
+                  </button>
+                  <span class="form-control text-center">{{ line.quantity }}</span>
+                  <button
+                    class="btn btn-outline-secondary"
+                    type="button"
+                    (click)="cart.setQuantity(line.sku, line.quantity + 1)"
+                    [attr.aria-label]="'Increase quantity of ' + line.name"
+                  >
+                    <i class="bi bi-plus"></i>
+                  </button>
+                </div>
+                <div class="text-end" style="min-width: 6rem">
+                  <span class="fw-semibold">{{
+                    line.price * line.quantity | currency: 'INR'
+                  }}</span>
+                </div>
+                <button
+                  type="button"
+                  class="btn btn-sm btn-outline-danger"
+                  (click)="cart.remove(line.sku)"
+                  [attr.aria-label]="'Remove ' + line.name"
+                >
+                  <i class="bi bi-trash"></i>
+                </button>
+              </div>
+            </li>
+          }
+        </ul>
+      </div>
+    </div>
+
+    <div class="col-12 col-lg-4">
+      <div class="card shadow-sm">
+        <div class="card-header"><h2 class="card-title h6 mb-0">Order summary</h2></div>
+        <div class="card-body">
+          @let totals = cart.totals();
+          <dl class="row mb-0 small">
+            <dt class="col-7 fw-normal text-body-secondary">Items</dt>
+            <dd class="col-5 text-end">{{ totals.itemCount }}</dd>
+
+            <dt class="col-7 fw-normal text-body-secondary">Subtotal</dt>
+            <dd class="col-5 text-end">{{ totals.subTotal | currency: 'INR' }}</dd>
+
+            <dt class="col-7 fw-normal text-body-secondary">Bulk discount</dt>
+            <dd class="col-5 text-end text-success">−{{ totals.discount | currency: 'INR' }}</dd>
+
+            <dt class="col-7 fw-normal text-body-secondary">Shipping</dt>
+            <dd class="col-5 text-end">
+              {{ totals.shipping === 0 ? 'Free' : (totals.shipping | currency: 'INR') }}
+            </dd>
+
+            <dt class="col-7 fw-normal text-body-secondary">Tax</dt>
+            <dd class="col-5 text-end">{{ totals.tax | currency: 'INR' }}</dd>
+          </dl>
+
+          <hr />
+
+          <div class="d-flex justify-content-between fs-5 fw-semibold">
+            <span>Total</span>
+            <span>{{ totals.grandTotal | currency: 'INR' }}</span>
+          </div>
+
+          @if (amountToFreeShipping() > 0) {
+            <p class="small text-body-secondary mt-2 mb-0">
+              Spend {{ amountToFreeShipping() | currency: 'INR' }} more for free shipping.
+            </p>
+          }
+          @if (totals.itemCount < bulkThreshold) {
+            <p class="small text-body-secondary mb-0">
+              Add {{ bulkThreshold - totals.itemCount }} more item(s) to unlock the 10% bulk
+              discount.
+            </p>
+          }
+
+          <button
+            type="button"
+            class="btn btn-primary w-100 mt-3"
+            [disabled]="placing()"
+            (click)="checkout()"
+          >
+            @if (placing()) {
+              <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+            }
+            Place order
+          </button>
+          <button type="button" class="btn btn-link w-100 text-danger" (click)="cart.clear()">
+            Empty bag
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}

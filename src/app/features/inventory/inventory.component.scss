@@ -1,0 +1,31 @@
+.small-box {
+  position: relative;
+  border-radius: 0.5rem;
+  padding: 1rem 1.25rem;
+  overflow: hidden;
+
+  .inner h3 {
+    margin: 0;
+    font-size: 1.6rem;
+    font-weight: 600;
+  }
+
+  .inner p {
+    margin: 0;
+    font-size: 0.8rem;
+    opacity: 0.9;
+  }
+}
+
+.small-box-icon {
+  position: absolute;
+  inset-block-start: 0.5rem;
+  inset-inline-end: 0.75rem;
+  font-size: 2.75rem;
+  opacity: 0.25;
+}
+
+td,
+th {
+  white-space: nowrap;
+}

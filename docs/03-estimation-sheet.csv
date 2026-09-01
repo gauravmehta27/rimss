@@ -1,0 +1,67 @@
+RIMSS - Retail Inventory Management Software System,,,,,,
+Frontend Estimation Sheet (Angular 22 + AdminLTE 4),,,,,,
+Version,1.0,,,,,
+Basis,"Frontend only. Backend APIs supplied by client. Effort in person-days (1 PD = 8 hours).",,,,,
+,,,,,,
+Phase,Activity,Complexity,Assumption / Basis,Effort (PD),Role,Comments
+Requirement,Requirement walkthrough and clarification workshops,Medium,"2 sessions with client SMEs",2.0,BA / TL,Covers functional scope of storefront and stock control
+Requirement,NFR elaboration and acceptance criteria,High,"Performance, cross-browser, SEO, accessibility",2.0,TL,100 ms interaction budget quantified and agreed
+Requirement,UX / wireframe review and content inventory,Medium,"Home, search, showcase, bag, stock control",3.0,UX / BA,Existing brand guidelines reused
+Requirement,API contract review and gap analysis,Medium,"REST contract for catalogue, facets, inventory, orders",2.0,TL / Sr Dev,Mock contract agreed as the interface baseline
+Requirement,Solution approach and estimation documentation,Medium,Case-study deliverables,3.0,TL,Solution approach + estimation + build strategy
+,,Sub-total,,12.0,,
+,,,,,,
+Design,Solution architecture and tier boundaries,High,N-tier presentation / business / data-access split,3.0,TL / Architect,Includes dependency rules and folder taxonomy
+Design,Pluggable module framework design,High,Manifest contract + registry + route projection,3.0,Architect,Key differentiator; drives extensibility
+Design,Design system and AdminLTE theming,Medium,Brand tokens over Bootstrap 5 CSS variables,4.0,UX / Sr Dev,Light and dark schemes
+Design,Responsive layout and breakpoint specification,Medium,Desktop / tablet / mobile,2.0,UX,Off-canvas sidebar below 992 px
+Design,SEO and performance strategy,High,"Titles, canonical, JSON-LD, budgets, code splitting",2.0,Sr Dev,Bundle budget targets defined here
+Design,Test strategy and CI pipeline design,Medium,Unit-test scope and quality gates,2.0,TL / QA,Gates: format / test / build / budgets
+,,Sub-total,,16.0,,
+,,,,,,
+Development,Workspace scaffolding and build configuration,Low,"Angular CLI, environments, proxy, budgets",2.0,Sr Dev,Zoneless + standalone + Vitest
+Development,Application shell (header / sidebar / footer / theme),High,AdminLTE grid layout + responsive behaviour,5.0,Sr Dev,Includes theme persistence and mobile overlay
+Development,Plugin core (manifest / registry / route projection),High,Feature-flag gating and lazy loading,4.0,Sr Dev,Enables zero-touch module onboarding
+Development,Cross-cutting concerns,High,"Interceptors, logger, config token, notifications",5.0,Sr Dev,Correlation ids + cache + error normalisation
+Development,Shared UI component library,Medium,"Product card, rating, pagination, skeleton, empty state",5.0,Dev,Presentational and reusable
+Development,Home module,Medium,"Hero, offers, categories, featured products",4.0,Dev,Plugin #1
+Development,Catalog module - product search screen,High,"Full-text search, facets, sort, paging, URL state",9.0,Sr Dev + Dev,Plugin #2 - most complex screen
+Development,Catalog module - product showcase screen,High,"Variants, live stock, related items, JSON-LD",6.0,Dev,Plugin #2
+Development,Cart module,Medium,Pricing rules and order placement,5.0,Dev,Plugin #3 - pure pricing engine
+Development,Inventory module (sample operational task),High,"KPIs, filters, paging, SKU adjustment write-back",5.0,Dev,Plugin #4 - full n-tier round trip
+Development,Mock API and seed data services,Medium,Node.js / Express with deterministic catalogue,2.0,Dev,Replaced by client APIs in production
+,,Sub-total,,52.0,,
+,,,,,,
+Testing & Bug Fixing,Unit tests - business layer and services,High,Pricing / query / registry / API services,6.0,Dev / QA,Pure functions kept framework-free
+Testing & Bug Fixing,Cross-browser verification,Medium,"Chrome, Edge, Firefox, Safari (macOS + iOS)",4.0,QA,4 browsers x key journeys
+Testing & Bug Fixing,Responsive and device testing,Medium,"Desktop, tablet, mobile breakpoints",3.0,QA,Includes touch-target review
+Testing & Bug Fixing,Accessibility audit and remediation,Medium,WCAG 2.1 AA smoke pass,3.0,QA / Dev,Focus order / ARIA / contrast
+Testing & Bug Fixing,Performance profiling and tuning,High,Bundle analysis + interaction latency,4.0,Sr Dev,Verifies the 100 ms and payload budgets
+Testing & Bug Fixing,Defect fixing buffer,Medium,~15% of development effort,4.0,Dev,Triaged by severity
+,,Sub-total,,24.0,,
+,,,,,,
+Project Management,Sprint planning and backlog grooming,Medium,2 sprints of 2 weeks,4.0,TL / PM,
+Project Management,Status reporting and governance,Low,Weekly reporting,3.0,PM,
+Project Management,Reviews and client demos,Medium,Design review + 2 demos,4.0,TL,
+Project Management,Risk management and release coordination,Medium,Release readiness and rollback plan,3.0,PM / TL,
+,,Sub-total,,14.0,,
+,,,,,,
+,,BASE TOTAL,,118.0,,
+,,Contingency @ 15%,,17.7,,Covers requirement volatility and API contract drift
+,,GRAND TOTAL (person-days),,135.7,,
+,,,,,,
+Schedule Summary,,,,,,
+Item,Value,,,,,
+Calendar duration,4 weeks (20 working days),,,,,
+Team size,7 (1 TL/Architect + 1 Sr Dev + 3 Dev + 1 QA + 0.5 UX + 0.5 PM),,,,,
+Available capacity,140 person-days,,,,,
+Estimated effort,135.7 person-days,,,,,
+Utilisation,97%,,,,,
+,,,,,,
+Estimation Notes,,,,,,
+1,Backend development / integration is excluded - client supplies the APIs.,,,,,
+2,Effort assumes the mock API contract is accepted as the production interface.,,,,,
+3,Authentication / payments / CMS / i18n are out of scope (see Solution Approach section 5.3).,,,,,
+4,End-to-end and visual-regression automation are out of scope; unit testing only.,,,,,
+5,Each additional pluggable module of comparable size is estimated at 5-9 PD of development.,,,,,
+6,Contingency covers requirement volatility and browser-specific defects; it is not schedule buffer.,,,,,

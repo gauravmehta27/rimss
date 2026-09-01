@@ -1,0 +1,143 @@
+<h1 class="visually-hidden">Luxury countryside fashion by YCompany</h1>
+
+<section
+  class="hero-carousel rounded-3 mb-4 text-white"
+  aria-roledescription="carousel"
+  aria-label="Featured offers"
+  (mouseenter)="paused.set(true)"
+  (mouseleave)="paused.set(false)"
+  (focusin)="paused.set(true)"
+  (focusout)="paused.set(false)"
+>
+  <div class="hero-carousel__viewport">
+    @for (slide of slides(); track slide.id; let i = $index) {
+      <article
+        class="hero-carousel__slide"
+        [class.is-active]="i === current()"
+        [attr.inert]="i === current() ? null : ''"
+        [attr.aria-label]="slide.title + ' (' + (i + 1) + ' of ' + slides().length + ')'"
+        [style.background-image]="slide.background"
+      >
+        <div class="hero-carousel__content">
+          <span class="badge text-bg-light text-dark mb-2">{{ slide.eyebrow }}</span>
+          <h2 class="display-6 fw-semibold">{{ slide.title }}</h2>
+          <p class="lead mb-3">{{ slide.subtitle }}</p>
+          @if (slide.code) {
+            <p class="mb-3 small">
+              Use code <span class="badge text-bg-dark font-monospace">{{ slide.code }}</span>
+            </p>
+          }
+          <div class="d-flex flex-wrap gap-2">
+            <a
+              class="btn btn-light btn-lg px-4"
+              [routerLink]="['/catalog']"
+              [queryParams]="slide.queryParams"
+            >
+              {{ slide.cta }}
+            </a>
+            <a class="btn btn-outline-light btn-lg px-4" routerLink="/catalog"
+              >Shop the collection</a
+            >
+          </div>
+        </div>
+      </article>
+    }
+  </div>
+
+  <button
+    type="button"
+    class="hero-carousel__control hero-carousel__control--prev"
+    aria-label="Previous offer"
+    (click)="move(-1)"
+  >
+    <i class="bi bi-chevron-left"></i>
+  </button>
+  <button
+    type="button"
+    class="hero-carousel__control hero-carousel__control--next"
+    aria-label="Next offer"
+    (click)="move(1)"
+  >
+    <i class="bi bi-chevron-right"></i>
+  </button>
+
+  <div class="hero-carousel__dots" role="tablist" aria-label="Choose offer">
+    @for (slide of slides(); track slide.id; let i = $index) {
+      <button
+        type="button"
+        role="tab"
+        class="hero-carousel__dot"
+        [class.is-active]="i === current()"
+        [attr.aria-selected]="i === current()"
+        [attr.aria-label]="slide.title"
+        (click)="goTo(i)"
+      ></button>
+    }
+  </div>
+</section>
+
+<section class="mb-4" aria-labelledby="offers-heading">
+  <h2 id="offers-heading" class="h5 mb-3">Latest offers</h2>
+  <div class="row row-cols-1 row-cols-md-3 g-3">
+    @for (offer of offers(); track offer.id) {
+      <div class="col">
+        <div class="card h-100 border-start border-4 border-{{ offer.accent }} shadow-sm">
+          <div class="card-body">
+            <h3 class="h6 mb-1">{{ offer.title }}</h3>
+            <p class="text-body-secondary small mb-2">{{ offer.subtitle }}</p>
+            <span class="badge text-bg-dark font-monospace">{{ offer.code }}</span>
+            <a
+              class="btn btn-sm btn-link"
+              [routerLink]="['/catalog']"
+              [queryParams]="{ categories: offer.categoryId, onSale: 'true' }"
+            >
+              Shop now <i class="bi bi-arrow-right"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+    } @empty {
+      <div class="col"><p class="text-body-secondary small">Offers are loading…</p></div>
+    }
+  </div>
+</section>
+
+<section class="mb-4" aria-labelledby="categories-heading">
+  <h2 id="categories-heading" class="h5 mb-3">Shop by category</h2>
+  <div class="row row-cols-2 row-cols-md-3 row-cols-xl-6 g-3">
+    @for (category of categories; track category.id) {
+      <div class="col">
+        <a
+          class="card h-100 text-decoration-none category-tile"
+          [routerLink]="['/catalog']"
+          [queryParams]="{ categories: category.id }"
+        >
+          <div class="card-body text-center">
+            <i class="bi {{ category.icon }} fs-3 text-primary"></i>
+            <p class="fw-semibold mb-0 mt-2 small">{{ category.name }}</p>
+            <p class="text-body-secondary mb-0" style="font-size: 0.75rem">{{ category.blurb }}</p>
+          </div>
+        </a>
+      </div>
+    }
+  </div>
+</section>
+
+<section aria-labelledby="featured-heading">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 id="featured-heading" class="h5 mb-0">Featured products</h2>
+    <a class="btn btn-sm btn-outline-primary" routerLink="/catalog">See all</a>
+  </div>
+
+  <div class="row row-cols-2 row-cols-md-3 row-cols-xxl-4 g-3">
+    @if (loading()) {
+      <app-card-skeleton [count]="8" />
+    } @else {
+      @for (product of featured(); track product.id) {
+        <div class="col">
+          <app-product-card [product]="product" (addToCart)="addToCart($event)" />
+        </div>
+      }
+    }
+  </div>
+</section>
