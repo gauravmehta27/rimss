@@ -1,6 +1,6 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
-import { catchError, filter, forkJoin, of, switchMap, tap } from 'rxjs';
+import { catchError, filter, of, switchMap, tap } from 'rxjs';
 import { APP_CONFIG } from '../../core/config/app-config';
 import type { ApiError, Paged } from '../../core/models/api.model';
 import type { ProductFacets, ProductQuery, ProductSummary } from '../../core/models/product.model';
@@ -47,18 +47,10 @@ export class CatalogStore {
       .pipe(
         filter((query): query is ProductQuery => query !== null),
         tap(() => this.busy.set(true)),
+        // Results and facets arrive together, so the grid and the filter rail
+        // can never render two different states of the same query.
         switchMap((query) =>
-          forkJoin({
-            result: this.products.search(query),
-            facets: this.products.facets({
-              search: query.search,
-              audiences: query.audiences,
-              minPrice: query.minPrice,
-              maxPrice: query.maxPrice,
-              onSale: query.onSale,
-              inStock: query.inStock,
-            }),
-          }).pipe(
+          this.products.catalogPage(query).pipe(
             catchError((error: ApiError) => {
               this.logger.error('catalogue load failed', error);
               this.failure.set(error);
@@ -72,8 +64,8 @@ export class CatalogStore {
         this.busy.set(false);
         if (!response) return;
         this.failure.set(null);
-        this.page.set(response.result);
-        this.facetData.set(response.facets);
+        this.page.set(response.products);
+        this.facetData.set(response.productFacets);
       });
   }
 

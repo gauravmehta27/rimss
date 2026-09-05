@@ -1,22 +1,22 @@
-import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import type { Observable } from 'rxjs';
-import { APP_CONFIG } from '../config/app-config';
-import type { ItemsEnvelope } from '../models/api.model';
+import { map, type Observable } from 'rxjs';
+import { GraphQlClient } from '../graphql/graphql.client';
+import { ORDERS_QUERY, PLACE_ORDER_MUTATION } from '../graphql/operations';
 import type { CartLine, Order } from '../models/cart.model';
 
 @Injectable({ providedIn: 'root' })
 export class OrderService {
-  private readonly http = inject(HttpClient);
-  private readonly baseUrl = `${inject(APP_CONFIG).apiBaseUrl}/orders`;
+  private readonly graphql = inject(GraphQlClient);
 
-  list(): Observable<ItemsEnvelope<Order>> {
-    return this.http.get<ItemsEnvelope<Order>>(this.baseUrl);
+  list(): Observable<Order[]> {
+    return this.graphql.query<{ orders: Order[] }>(ORDERS_QUERY).pipe(map((data) => data.orders));
   }
 
   place(lines: readonly CartLine[]): Observable<Order> {
-    return this.http.post<Order>(this.baseUrl, {
-      lines: lines.map(({ sku, name, price, quantity }) => ({ sku, name, price, quantity })),
-    });
+    return this.graphql
+      .mutate<{ placeOrder: Order }>(PLACE_ORDER_MUTATION, {
+        lines: lines.map(({ sku, name, price, quantity }) => ({ sku, name, price, quantity })),
+      })
+      .pipe(map((data) => data.placeOrder));
   }
 }

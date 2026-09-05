@@ -155,12 +155,12 @@ export class HeaderComponent {
         distinctUntilChanged(),
         switchMap((value) =>
           value.trim().length < 2
-            ? of({ items: [] })
-            : this.products.suggestions(value.trim()).pipe(catchError(() => of({ items: [] }))),
+            ? of([])
+            : this.products.suggestions(value.trim()).pipe(catchError(() => of([]))),
         ),
         takeUntilDestroyed(),
       )
-      .subscribe((response) => this.suggestions.set(response.items));
+      .subscribe((suggestions) => this.suggestions.set(suggestions));
   }
 
   protected submit(): void {

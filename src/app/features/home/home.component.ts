@@ -113,13 +113,13 @@ export class HomeComponent {
     });
 
     forkJoin({
-      featured: this.products.featured(8).pipe(catchError(() => of({ items: [] }))),
-      offers: this.products.offers().pipe(catchError(() => of({ items: [] }))),
+      featured: this.products.featured(8).pipe(catchError(() => of([]))),
+      offers: this.products.offers().pipe(catchError(() => of([]))),
     })
       .pipe(takeUntilDestroyed())
       .subscribe(({ featured, offers }) => {
-        this.featured.set(featured.items);
-        this.offers.set(offers.items);
+        this.featured.set(featured);
+        this.offers.set(offers);
         this.loading.set(false);
       });
 

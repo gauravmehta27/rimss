@@ -1,9 +1,15 @@
-import { HttpClient, HttpContext, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import type { Observable } from 'rxjs';
+import { map, type Observable } from 'rxjs';
 import { APP_CONFIG } from '../config/app-config';
-import { CACHE_TTL } from '../interceptors/cache.interceptor';
-import type { ItemsEnvelope, Paged } from '../models/api.model';
+import { GraphQlClient } from '../graphql/graphql.client';
+import {
+  CATALOG_PAGE_QUERY,
+  FEATURED_PRODUCTS_QUERY,
+  OFFERS_QUERY,
+  PRODUCT_DETAIL_QUERY,
+  PRODUCT_SUGGESTIONS_QUERY,
+} from '../graphql/operations';
+import type { Paged } from '../models/api.model';
 import type {
   Offer,
   ProductDetail,
@@ -13,72 +19,102 @@ import type {
   Suggestion,
 } from '../models/product.model';
 
-/**
- * Pure query → transport mapping. Extracted from the service so it can be unit
- * tested without an HTTP stack, and reused by any future transport (GraphQL,
- * BFF, worker) without change.
- */
-export function buildProductParams(query: ProductQuery, defaultPageSize: number): HttpParams {
-  let params = new HttpParams()
-    .set('page', String(Math.max(1, query.page ?? 1)))
-    .set('pageSize', String(query.pageSize ?? defaultPageSize))
-    .set('sort', query.sort ?? 'relevance');
+/** Mirrors `ProductFilterInput` in the schema; empty facets are simply absent. */
+export type ProductFilterInput = {
+  search?: string;
+  categoryIds?: string[];
+  colors?: string[];
+  sizes?: string[];
+  audiences?: string[];
+  minPrice?: number;
+  maxPrice?: number;
+  minRating?: number;
+  onSale?: boolean;
+  inStock?: boolean;
+};
 
-  const term = query.search?.trim();
-  if (term) params = params.set('search', term);
-  if (query.categoryIds?.length) params = params.set('categoryIds', query.categoryIds.join(','));
-  if (query.colors?.length) params = params.set('colors', query.colors.join(','));
-  if (query.sizes?.length) params = params.set('sizes', query.sizes.join(','));
-  if (query.audiences?.length) params = params.set('audiences', query.audiences.join(','));
-  if (query.minPrice != null) params = params.set('minPrice', String(query.minPrice));
-  if (query.maxPrice != null) params = params.set('maxPrice', String(query.maxPrice));
-  if (query.minRating != null) params = params.set('minRating', String(query.minRating));
-  if (query.onSale) params = params.set('onSale', 'true');
-  if (query.inStock) params = params.set('inStock', 'true');
+export type ProductQueryVariables = {
+  filter: ProductFilterInput;
+  sort: string;
+  page: number;
+  pageSize: number;
+};
 
-  return params;
+export interface CatalogPage {
+  products: Paged<ProductSummary>;
+  productFacets: ProductFacets;
 }
 
-/** Data-access boundary for the catalogue. Components never call HttpClient. */
+/**
+ * Pure query → variables mapping. Extracted from the service so it can be unit
+ * tested without a transport, and so the URL contract and the GraphQL contract
+ * are translated in exactly one place.
+ */
+export function buildProductVariables(
+  query: ProductQuery,
+  defaultPageSize: number,
+): ProductQueryVariables {
+  const filter: ProductFilterInput = {};
+
+  const term = query.search?.trim();
+  if (term) filter.search = term;
+  if (query.categoryIds?.length) filter.categoryIds = [...query.categoryIds];
+  if (query.colors?.length) filter.colors = [...query.colors];
+  if (query.sizes?.length) filter.sizes = [...query.sizes];
+  if (query.audiences?.length) filter.audiences = [...query.audiences];
+  if (query.minPrice != null) filter.minPrice = query.minPrice;
+  if (query.maxPrice != null) filter.maxPrice = query.maxPrice;
+  if (query.minRating != null) filter.minRating = query.minRating;
+  if (query.onSale) filter.onSale = true;
+  if (query.inStock) filter.inStock = true;
+
+  return {
+    filter,
+    sort: query.sort ?? 'relevance',
+    page: Math.max(1, query.page ?? 1),
+    pageSize: query.pageSize ?? defaultPageSize,
+  };
+}
+
+/** Data-access boundary for the catalogue. Components never call the transport. */
 @Injectable({ providedIn: 'root' })
 export class ProductService {
-  private readonly http = inject(HttpClient);
+  private readonly graphql = inject(GraphQlClient);
   private readonly config = inject(APP_CONFIG);
-  private readonly baseUrl = `${this.config.apiBaseUrl}/products`;
 
-  search(query: ProductQuery): Observable<Paged<ProductSummary>> {
-    return this.http.get<Paged<ProductSummary>>(this.baseUrl, {
-      params: buildProductParams(query, this.config.pageSize),
-    });
+  /** Results and facet counts for the search screen, resolved in one request. */
+  catalogPage(query: ProductQuery): Observable<CatalogPage> {
+    return this.graphql.query<CatalogPage>(
+      CATALOG_PAGE_QUERY,
+      buildProductVariables(query, this.config.pageSize),
+    );
   }
 
-  featured(limit = 8): Observable<ItemsEnvelope<ProductSummary>> {
-    return this.http.get<ItemsEnvelope<ProductSummary>>(`${this.baseUrl}/featured`, {
-      params: new HttpParams().set('limit', String(limit)),
-      context: new HttpContext().set(CACHE_TTL, 60_000),
-    });
+  featured(limit = 8): Observable<ProductSummary[]> {
+    return this.graphql
+      .query<{ featuredProducts: ProductSummary[] }>(
+        FEATURED_PRODUCTS_QUERY,
+        { limit },
+        { cacheTtlMs: 60_000 },
+      )
+      .pipe(map((data) => data.featuredProducts));
   }
 
-  facets(query: ProductQuery = {}): Observable<ProductFacets> {
-    return this.http.get<ProductFacets>(`${this.baseUrl}/facets`, {
-      params: buildProductParams(query, this.config.pageSize),
-      context: new HttpContext().set(CACHE_TTL, 30_000),
-    });
-  }
-
-  suggestions(term: string): Observable<ItemsEnvelope<Suggestion>> {
-    return this.http.get<ItemsEnvelope<Suggestion>>(`${this.baseUrl}/suggestions`, {
-      params: new HttpParams().set('q', term),
-    });
+  suggestions(term: string): Observable<Suggestion[]> {
+    return this.graphql
+      .query<{ productSuggestions: Suggestion[] }>(PRODUCT_SUGGESTIONS_QUERY, { term })
+      .pipe(map((data) => data.productSuggestions));
   }
 
   byId(id: string): Observable<ProductDetail> {
-    return this.http.get<ProductDetail>(`${this.baseUrl}/${encodeURIComponent(id)}`);
+    return this.graphql
+      .query<{ product: ProductDetail }>(PRODUCT_DETAIL_QUERY, { id })
+      .pipe(map((data) => data.product));
   }
 
-  offers(): Observable<ItemsEnvelope<Offer>> {
-    return this.http.get<ItemsEnvelope<Offer>>(`${this.config.apiBaseUrl}/offers`, {
-      context: new HttpContext().set(CACHE_TTL, 120_000),
-    });
+  offers(): Observable<Offer[]> {
+    return this.graphql
+      .query<{ offers: Offer[] }>(OFFERS_QUERY, {}, { cacheTtlMs: 120_000 })
+      .pipe(map((data) => data.offers));
   }
 }

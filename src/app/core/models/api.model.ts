@@ -7,10 +7,6 @@ export interface Paged<T> {
   sort?: string;
 }
 
-export interface ItemsEnvelope<T> {
-  items: T[];
-}
-
 export interface ApiError {
   code: string;
   message: string;
