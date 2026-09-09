@@ -3,9 +3,8 @@
  * independently of the brand overrides that follow.
  */
 
-@use 'bootstrap/scss/bootstrap' as *;
-@use 'admin-lte/dist/css/adminlte.css';
-@use 'bootstrap-icons/font/bootstrap-icons.css';
+@import 'styles/vendor';
+@import 'styles/icons';
 
 :root {
   --rimss-brand: #2f4f3a;

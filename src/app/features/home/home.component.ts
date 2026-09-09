@@ -16,7 +16,7 @@ import { ProductService } from '../../core/services/product.service';
 import { SeoService } from '../../core/services/seo.service';
 import { CardSkeletonComponent } from '../../shared/components/card-skeleton.component';
 import { ProductCardComponent } from '../../shared/components/product-card.component';
-import { productImage } from '../../shared/utils/product-artwork';
+import { heroArtwork } from '../../shared/utils/product-artwork';
 
 interface CategoryTile {
   id: string;
@@ -32,14 +32,11 @@ interface HeroSlide {
   subtitle: string;
   code: string | null;
   cta: string;
-  background: string;
+  image: string;
   queryParams: Record<string, string>;
 }
 
 const SLIDE_INTERVAL_MS = 6000;
-
-const backdrop = (image: string) =>
-  `linear-gradient(100deg, rgba(15, 23, 42, 0.92) 0%, rgba(15, 23, 42, 0.72) 45%, rgba(15, 23, 42, 0.25) 100%), url('${image}')`;
 
 const WELCOME_SLIDE: HeroSlide = {
   id: 'welcome',
@@ -49,7 +46,7 @@ const WELCOME_SLIDE: HeroSlide = {
     'Sweaters, moleskin, corduroy and tattersall shirts — crafted by YCompany for the modern countryside wardrobe.',
   code: null,
   cta: 'Shop new arrivals',
-  background: backdrop(productImage(1, 'outerwear', 1200, 600)),
+  image: heroArtwork(0),
   queryParams: { sort: 'newest' },
 };
 
@@ -82,7 +79,7 @@ export class HomeComponent {
       subtitle: offer.subtitle,
       code: offer.code,
       cta: 'Shop this offer',
-      background: backdrop(productImage(index, offer.categoryId, 1200, 600)),
+      image: heroArtwork(index + 1),
       queryParams: { categories: offer.categoryId, onSale: 'true' },
     })),
   ]);

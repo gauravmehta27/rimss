@@ -25,8 +25,8 @@ import { LayoutService } from '../../core/services/layout.service';
     </div>
 
     <div class="sidebar-wrapper">
-      <nav class="mt-2">
-        <ul class="nav sidebar-menu flex-column" role="menu">
+      <nav class="mt-2" aria-label="Main navigation">
+        <ul class="nav sidebar-menu flex-column">
           @for (group of registry.navGroups(); track group.name) {
             <li class="nav-header">{{ group.name }}</li>
             @for (item of group.items; track item.id) {
@@ -35,9 +35,10 @@ import { LayoutService } from '../../core/services/layout.service';
                   class="nav-link"
                   [routerLink]="item.route"
                   routerLinkActive="active"
+                  ariaCurrentWhenActive="page"
                   (click)="layout.closeMobileSidebar()"
                 >
-                  <i class="nav-icon bi {{ item.icon }}"></i>
+                  <i class="nav-icon bi {{ item.icon }}" aria-hidden="true"></i>
                   <p>{{ item.title }}</p>
                 </a>
               </li>

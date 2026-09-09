@@ -121,7 +121,10 @@ export class InventoryComponent {
 
     this.inventory
       .adjust(row.sku, delta)
-      .pipe(catchError(() => of(null)))
+      .pipe(
+        catchError(() => of(null)),
+        takeUntilDestroyed(this.destroyRef),
+      )
       .subscribe((updated) => {
         this.busySku.set(null);
         if (!updated) return;

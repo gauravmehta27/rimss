@@ -11,6 +11,8 @@
 
 const express = require('express');
 const cors = require('cors');
+const compression = require('compression');
+const path = require('node:path');
 const { randomUUID } = require('node:crypto');
 const { graphql } = require('graphql');
 const { createState, createSchema, createRootValue } = require('./schema');
@@ -19,12 +21,17 @@ const app = express();
 const PORT = Number(process.env.MOCK_API_PORT || 3000);
 const HOST = '127.0.0.1';
 const LATENCY_MS = Number(process.env.MOCK_API_LATENCY || 120);
+const DIST_DIR = path.join(__dirname, '..', 'dist', 'rimss', 'browser');
+// `npm run preview` passes this so Lighthouse measures the real production
+// bundle over one origin, with the compression and caching a CDN would apply.
+const SERVE_DIST = process.argv.includes('--serve-dist');
 
+app.use(compression());
 app.use(cors({ origin: [/^http:\/\/localhost:\d+$/, /^http:\/\/127\.0\.0\.1:\d+$/] }));
 app.use(express.json({ limit: '100kb' }));
 
 // Simulated network latency + correlation id echo, so the UI's loading states are exercised.
-app.use((req, res, next) => {
+app.use('/api', (req, res, next) => {
   res.setHeader('X-Correlation-Id', req.header('X-Correlation-Id') || randomUUID());
   setTimeout(next, LATENCY_MS);
 });
@@ -71,6 +78,37 @@ app.post('/api/products', async (req, res) => {
   }
 });
 
+if (SERVE_DIST) {
+  // Hashed filenames are immutable; index.html must always be revalidated.
+  app.use(
+    express.static(DIST_DIR, {
+      index: false,
+      setHeaders: (res, filePath) => {
+        const hashed = /-[\w-]{8,}\.(?:js|css|woff2?|png|jpe?g|webp|avif|svg)$/.test(
+          path.basename(filePath),
+        );
+        res.setHeader(
+          'Cache-Control',
+          hashed ? 'public, max-age=31536000, immutable' : 'no-cache',
+        );
+      },
+    }),
+  );
+  // SPA fallback: any non-API GET resolves to the Angular entry point.
+  app.use((req, res, next) => {
+    if (
+      !['GET', 'HEAD'].includes(req.method) ||
+      req.path === '/api' ||
+      req.path.startsWith('/api/') ||
+      path.extname(req.path)
+    ) {
+      return next();
+    }
+    res.setHeader('Cache-Control', 'no-cache');
+    res.sendFile(path.join(DIST_DIR, 'index.html'));
+  });
+}
+
 app.use((req, res) =>
   res.status(404).json({
     errors: [{ message: `No route for ${req.path}`, extensions: { code: 'NOT_FOUND' } }],
@@ -89,4 +127,7 @@ app.listen(PORT, HOST, () => {
   console.log(
     `[mock-api] ${state.products.length} products seeded, simulated latency ${LATENCY_MS}ms`,
   );
+  if (SERVE_DIST) {
+    console.log(`[mock-api] serving production build from ${DIST_DIR}`);
+  }
 });

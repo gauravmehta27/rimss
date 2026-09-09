@@ -69,7 +69,28 @@ const FALLBACK_PHOTOS: readonly string[] = [
 export function productImage(seed: number, categoryId = '', width = 400, height = 300): string {
   const pool = PHOTOS[categoryId] ?? FALLBACK_PHOTOS;
   const photo = pool[Math.abs(seed) % pool.length];
-  return `https://images.unsplash.com/${photo}?auto=format&fit=crop&w=${width}&h=${height}&q=70`;
+  // `fm=webp` roughly halves the payload against the CDN's default JPEG.
+  return `https://images.unsplash.com/${photo}?fm=webp&fit=crop&w=${width}&h=${height}&q=60`;
+}
+
+/**
+ * `srcset` for the same shot so phones don't download desktop-sized artwork.
+ * Widths are scaled from the layout size, keeping the source aspect ratio.
+ */
+export function productImageSrcset(
+  seed: number,
+  categoryId = '',
+  width = 400,
+  height = 300,
+  scales: readonly number[] = [0.5, 0.75, 1, 1.5],
+): string {
+  const ratio = height / width;
+  return scales
+    .map((scale) => {
+      const w = Math.round(width * scale);
+      return `${productImage(seed, categoryId, w, Math.round(w * ratio))} ${w}w`;
+    })
+    .join(', ');
 }
 
 const escapeXml = (value: string) =>
@@ -98,6 +119,28 @@ export function productArtwork(seed: number, name: string, label = ''): string {
 <circle cx="60" cy="255" r="70" fill="#000000" opacity="0.10"/>
 <text x="32" y="170" font-family="Georgia, serif" font-size="76" fill="#ffffff" opacity="0.92">${escapeXml(initials(name))}</text>
 <text x="34" y="205" font-family="Helvetica, Arial, sans-serif" font-size="17" letter-spacing="3" fill="#ffffff" opacity="0.75">${escapeXml(label.toUpperCase())}</text>
+</svg>`;
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg.replace(/\n/g, ''))}`;
+}
+
+/**
+ * Hero backdrop as an inline SVG (~500 bytes, no network request).
+ *
+ * The hero is the LCP element on the landing route. Sourcing it from a
+ * third-party photo CDN made LCP wait on DNS + TLS + a ~150 kB download that
+ * could not even start until the bundle had booted; rendering it inline makes
+ * LCP land with the first paint instead.
+ */
+export function heroArtwork(seed: number): string {
+  const [from, to] = PALETTES[Math.abs(seed) % PALETTES.length];
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600" preserveAspectRatio="xMidYMid slice">
+<defs><linearGradient id="h" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0%" stop-color="${from}"/><stop offset="55%" stop-color="${to}"/><stop offset="100%" stop-color="${from}"/>
+</linearGradient></defs>
+<rect width="1200" height="600" fill="url(#h)"/>
+<circle cx="980" cy="120" r="260" fill="#ffffff" opacity="0.10"/>
+<circle cx="1120" cy="520" r="180" fill="#000000" opacity="0.12"/>
+<circle cx="180" cy="540" r="220" fill="#000000" opacity="0.08"/>
 </svg>`;
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg.replace(/\n/g, ''))}`;
 }

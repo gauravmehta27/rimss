@@ -1,0 +1,132 @@
+// Lean vendor baseline.
+//
+// AdminLTE's prebuilt `dist/css/adminlte.css` inlines the whole of Bootstrap, so
+// importing it alongside `bootstrap/scss/bootstrap` shipped Bootstrap twice
+// (~230 kB of duplicate CSS). Building AdminLTE from source lets us load
+// Bootstrap once and pull in only the components this app actually renders.
+//
+// Adding a Bootstrap component to a template? Add its partial below too.
+
+@import 'bootstrap/scss/functions';
+@import 'admin-lte/src/scss/bootstrap-overrides';
+@import 'bootstrap/scss/variables';
+@import 'bootstrap/scss/variables-dark';
+@import 'bootstrap/scss/maps';
+@import 'bootstrap/scss/mixins';
+@import 'bootstrap/scss/utilities';
+
+// Bootstrap generates ~2000 utility classes across six breakpoints; the vast
+// majority are dead weight here. Drop the groups no template references, and
+// keep responsive variants only for `display` and `text-align` (the only ones
+// used with a breakpoint infix).
+//
+// Reaching for a utility that no longer exists? Re-enable its group below.
+$_drop: (
+  'object-fit',
+  'focus-ring',
+  'translate-middle',
+  'max-width',
+  'viewport-width',
+  'min-viewport-width',
+  'max-height',
+  'viewport-height',
+  'min-viewport-height',
+  'flex',
+  'flex-shrink',
+  'align-content',
+  'align-self',
+  'order',
+  'row-gap',
+  'column-gap',
+  'font-style',
+  'line-height',
+  'white-space',
+  'word-wrap',
+  'text-opacity',
+  'link-opacity',
+  'link-offset',
+  'link-underline',
+  'link-underline-opacity',
+  'bg-opacity',
+  'gradient',
+  'user-select',
+  'pointer-events',
+  'rounded-top',
+  'rounded-end',
+  'rounded-bottom',
+  'rounded-start',
+  'visibility',
+  'z-index'
+);
+
+@each $key in $_drop {
+  $utilities: map-merge(
+    $utilities,
+    (
+      $key: null,
+    )
+  ) !global;
+}
+
+@each $key, $config in $utilities {
+  @if $config and map-get($config, 'responsive') and $key != 'display' and $key != 'text-align' {
+    $utilities: map-merge(
+      $utilities,
+      (
+        $key: map-merge(
+            $config,
+            (
+              responsive: false,
+            )
+          ),
+      )
+    ) !global;
+  }
+}
+
+@import 'bootstrap/scss/root';
+@import 'bootstrap/scss/reboot';
+@import 'bootstrap/scss/type';
+@import 'bootstrap/scss/images';
+@import 'bootstrap/scss/containers';
+@import 'bootstrap/scss/grid';
+@import 'bootstrap/scss/tables';
+@import 'bootstrap/scss/forms';
+@import 'bootstrap/scss/buttons';
+@import 'bootstrap/scss/transitions';
+@import 'bootstrap/scss/button-group';
+@import 'bootstrap/scss/nav';
+@import 'bootstrap/scss/navbar';
+@import 'bootstrap/scss/card';
+@import 'bootstrap/scss/breadcrumb';
+@import 'bootstrap/scss/pagination';
+@import 'bootstrap/scss/badge';
+@import 'bootstrap/scss/alert';
+@import 'bootstrap/scss/progress';
+@import 'bootstrap/scss/list-group';
+@import 'bootstrap/scss/close';
+@import 'bootstrap/scss/toasts';
+@import 'bootstrap/scss/spinners';
+@import 'bootstrap/scss/placeholders';
+@import 'bootstrap/scss/helpers';
+@import 'bootstrap/scss/utilities/api';
+
+// Unused Bootstrap widgets deliberately omitted: accordion, dropdown, modal,
+// tooltip, popover, carousel, offcanvas.
+
+@import 'admin-lte/src/scss/variables';
+@import 'admin-lte/src/scss/variables-dark';
+@import 'admin-lte/src/scss/mixins';
+
+@import 'admin-lte/src/scss/root';
+@import 'admin-lte/src/scss/app-wrapper';
+@import 'admin-lte/src/scss/app-content';
+@import 'admin-lte/src/scss/app-header';
+@import 'admin-lte/src/scss/app-sidebar';
+@import 'admin-lte/src/scss/app-main';
+@import 'admin-lte/src/scss/app-footer';
+@import 'admin-lte/src/scss/cards';
+@import 'admin-lte/src/scss/table';
+@import 'admin-lte/src/scss/progress-bars';
+@import 'admin-lte/src/scss/small-box';
+@import 'admin-lte/src/scss/accessibility';

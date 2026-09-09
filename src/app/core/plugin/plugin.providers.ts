@@ -12,7 +12,7 @@ export function providePlugins(manifests: readonly PluginManifest[]): Environmen
 
 /**
  * Projects manifests into lazily loaded child routes. Each module is a separate
- * bundle, so the initial payload stays small no matter how many modules ship.
+ * bundle and remains on-demand, so visiting Home never evaluates other screens.
  */
 export function toPluginRoutes(manifests: readonly PluginManifest[], flags: FeatureFlags): Routes {
   return manifests
@@ -21,6 +21,6 @@ export function toPluginRoutes(manifests: readonly PluginManifest[], flags: Feat
     .map<Route>((manifest) => ({
       path: manifest.route,
       loadChildren: () => manifest.loadRoutes(),
-      data: { pluginId: manifest.id, title: manifest.title },
+      data: { pluginId: manifest.id, title: manifest.title, preload: false },
     }));
 }

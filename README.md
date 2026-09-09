@@ -21,9 +21,28 @@ opens the browser. Requests to `/api` are proxied to the mock server.
 | `npm run serve:web` | Dev server only |
 | `npm run mock-api` | Mock API only |
 | `npm run build` | Production build into `dist/rimss/browser` |
+| `npm run preview` | Build and serve optimized app + mock API on port 3000 |
+| `npm run build:icons` | Regenerate the used Bootstrap icon subset after adding icons |
 | `npm run test` | Unit tests (watch) |
 | `npm run test:ci` | Unit tests (single run) |
 | `npm run lint:format` | Prettier check |
+
+### Lighthouse validation
+
+Use `npm run preview`, then audit **http://127.0.0.1:3000/home** in Chrome Lighthouse.
+Stop the existing mock API first if port 3000 is occupied, or set `MOCK_API_PORT` to
+an unused port before starting the preview. This remains a localhost-only demo,
+not a production deployment server.
+
+Do not use the development server on port 4200 for production scores: it serves
+unminified code, source maps and development tooling. The preview serves the
+optimized build with compression, immutable caching for hashed assets, and
+revalidation for the entry document and unhashed public assets.
+
+Compare cold-cache runs using the same device and throttling settings. Record LCP,
+FCP, CLS and TBT as well as category scores; Unsplash network timing can vary.
+The initial hero image is preloaded, while product photos use responsive lazy
+images. Their inline SVG backgrounds are local fallbacks, not extra network requests.
 
 ---
 

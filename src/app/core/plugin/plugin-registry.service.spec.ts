@@ -129,7 +129,7 @@ describe('toPluginRoutes', () => {
 
     expect(routes.map((route) => route.path)).toEqual(['catalog', 'inventory']);
     expect(routes.every((route) => typeof route.loadChildren === 'function')).toBe(true);
-    expect(routes[0].data).toEqual({ pluginId: 'catalog', title: 'Shop' });
+    expect(routes[0].data).toEqual({ pluginId: 'catalog', title: 'Shop', preload: false });
   });
 
   it('does not emit a route for a disabled module, so the bundle is never requested', () => {

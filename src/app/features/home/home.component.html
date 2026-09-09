@@ -16,8 +16,17 @@
         [class.is-active]="i === current()"
         [attr.inert]="i === current() ? null : ''"
         [attr.aria-label]="slide.title + ' (' + (i + 1) + ' of ' + slides().length + ')'"
-        [style.background-image]="slide.background"
       >
+        <img
+          class="hero-carousel__media"
+          alt=""
+          aria-hidden="true"
+          [src]="slide.image"
+          width="1200"
+          height="600"
+          decoding="async"
+          [attr.fetchpriority]="i === 0 ? 'high' : 'low'"
+        />
         <div class="hero-carousel__content">
           <span class="badge text-bg-light text-dark mb-2">{{ slide.eyebrow }}</span>
           <h2 class="display-6 fw-semibold">{{ slide.title }}</h2>
@@ -129,15 +138,22 @@
     <a class="btn btn-sm btn-outline-primary" routerLink="/catalog">See all</a>
   </div>
 
-  <div class="row row-cols-2 row-cols-md-3 row-cols-xxl-4 g-3">
-    @if (loading()) {
-      <app-card-skeleton [count]="8" />
-    } @else {
-      @for (product of featured(); track product.id) {
-        <div class="col">
-          <app-product-card [product]="product" (addToCart)="addToCart($event)" />
-        </div>
+  <!-- Below the fold: keeps the product-card chunk and its photos off the initial load. -->
+  @defer (on viewport; prefetch on idle) {
+    <div class="row row-cols-2 row-cols-md-3 row-cols-xxl-4 g-3">
+      @if (loading()) {
+        <app-card-skeleton [count]="8" />
+      } @else {
+        @for (product of featured(); track product.id) {
+          <div class="col">
+            <app-product-card [product]="product" (addToCart)="addToCart($event)" />
+          </div>
+        }
       }
-    }
-  </div>
+    </div>
+  } @placeholder {
+    <div class="row row-cols-2 row-cols-md-3 row-cols-xxl-4 g-3">
+      <app-card-skeleton [count]="8" />
+    </div>
+  }
 </section>

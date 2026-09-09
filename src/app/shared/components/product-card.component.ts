@@ -2,7 +2,7 @@ import { CurrencyPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import type { ProductSummary } from '../../core/models/product.model';
-import { productArtwork, productImage } from '../utils/product-artwork';
+import { productArtwork, productImage, productImageSrcset } from '../utils/product-artwork';
 import { RatingStarsComponent } from './rating-stars.component';
 
 @Component({
@@ -14,16 +14,18 @@ import { RatingStarsComponent } from './rating-stars.component';
       <a
         class="product-card__media"
         [routerLink]="['/catalog', product().id]"
-        [attr.aria-label]="product().name"
         [style.background-image]="'url(' + artwork() + ')'"
       >
         <img
           [src]="photo()"
+          [srcset]="photoSrcset()"
+          sizes="auto, (min-width: 1400px) 22vw, (min-width: 768px) 30vw, 46vw"
           [alt]="product().name + ' — ' + product().categoryName"
           width="400"
           height="300"
           loading="lazy"
           decoding="async"
+          fetchpriority="low"
         />
         <div class="product-card__badges">
           @if (product().discountPercent > 0) {
@@ -124,5 +126,15 @@ export class ProductCardComponent {
 
   protected readonly photo = computed(() =>
     productImage(this.product().imageSeed, this.product().categoryId),
+  );
+
+  protected readonly photoSrcset = computed(() =>
+    productImageSrcset(
+      this.product().imageSeed,
+      this.product().categoryId,
+      400,
+      300,
+      [0.5, 0.75, 1, 1.125, 1.5, 2],
+    ),
   );
 }
