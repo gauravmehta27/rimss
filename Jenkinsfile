@@ -10,7 +10,7 @@ pipeline {
         DEPLOY_DIR = 'C:\\builds\\RIMMS\\deploy'
 
         // CHANGE THIS if your Angular project has a different name
-        BUILD_DIR = 'C:\\builds\\RIMMS\\deploy'
+        BUILD_DIR = 'dist\\rimms\\browser'
     }
 
     stages {
@@ -43,21 +43,57 @@ pipeline {
         stage('Deploy Locally') {
             steps {
                 bat '''
-                echo Deploying RIMMS...
+                @echo off
 
-                if exist "%DEPLOY_DIR%" (
-                    rmdir /S /Q "%DEPLOY_DIR%"
+                echo ==============================
+                echo RIMMS DEPLOYMENT
+                echo ==============================
+
+                echo Jenkins Workspace:
+                echo %WORKSPACE%
+
+                echo Build Directory:
+                echo %WORKSPACE%\\%BUILD_DIR%
+
+                echo Deployment Directory:
+                echo %DEPLOY_DIR%
+
+                echo.
+
+                if not exist "%WORKSPACE%\\%BUILD_DIR%" (
+                    echo ERROR: Angular build directory does not exist.
+                    exit /b 1
                 )
 
-                mkdir "%DEPLOY_DIR%"
-
-                xcopy "%BUILD_DIR%\\*" "%DEPLOY_DIR%\\" /E /I /Y
-
-                if exist "deployment\\web.config" (
-                    copy /Y "deployment\\web.config" "%DEPLOY_DIR%\\web.config"
+                if not exist "%DEPLOY_DIR%" (
+                    mkdir "%DEPLOY_DIR%"
                 )
 
-                echo Deployment completed.
+                echo Copying application...
+
+                robocopy "%WORKSPACE%\\%BUILD_DIR%" "%DEPLOY_DIR%" /MIR
+
+                set ROBOCOPY_EXIT=%ERRORLEVEL%
+
+                if %ROBOCOPY_EXIT% GEQ 8 (
+                    echo ERROR: Deployment copy failed.
+                    exit /b %ROBOCOPY_EXIT%
+                )
+
+                if exist "%WORKSPACE%\\deployment\\web.config" (
+                    copy /Y "%WORKSPACE%\\deployment\\web.config" "%DEPLOY_DIR%\\web.config"
+
+                    if errorlevel 1 (
+                        echo ERROR: Could not copy web.config
+                        exit /b 1
+                    )
+                )
+
+                echo.
+                echo ==============================
+                echo Deployment completed successfully
+                echo Target: %DEPLOY_DIR%
+                echo ==============================
                 '''
             }
         }
