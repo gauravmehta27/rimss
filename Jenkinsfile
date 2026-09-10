@@ -8,9 +8,6 @@ pipeline {
 
     environment {
         DEPLOY_DIR = 'C:\\builds\\RIMMS\\deploy'
-
-        // CHANGE THIS if your Angular project has a different name
-        BUILD_DIR = 'dist\\rimms\\browser'
     }
 
     stages {
@@ -23,14 +20,29 @@ pipeline {
 
         stage('Environment Check') {
             steps {
-                bat 'node --version'
-                bat 'npm --version'
+                bat '''
+                @echo off
+
+                echo Workspace:
+                echo %WORKSPACE%
+
+                echo.
+                echo Node version:
+                node --version
+
+                echo.
+                echo NPM version:
+                call npm --version
+                '''
             }
         }
 
         stage('Install Dependencies') {
             steps {
-                bat 'npm ci'
+                bat '''
+                @echo off
+                call npm ci
+                '''
             }
         }
 
@@ -39,34 +51,26 @@ pipeline {
                 bat '''
                 @echo off
 
-                echo ==========================================
-                echo CURRENT JENKINS DIRECTORY
-                echo ==========================================
-                cd
+                echo Cleaning previous builds...
+
+                if exist dist (
+                    rmdir /S /Q dist
+                )
 
                 echo.
-                echo ==========================================
-                echo BUILDING ANGULAR
-                echo ==========================================
+                echo Building Angular production application...
 
                 call npx ng build --configuration production
 
                 if errorlevel 1 (
-                    echo ANGULAR BUILD FAILED
+                    echo ERROR: Angular build failed.
                     exit /b 1
                 )
 
                 echo.
-                echo ==========================================
-                echo CONTENTS OF DIST
-                echo ==========================================
+                echo Build completed successfully.
 
-                if exist dist (
-                    dir dist /s /b
-                ) else (
-                    echo DIST DIRECTORY DOES NOT EXIST
-                    exit /b 1
-                )
+                dir dist /s /b
                 '''
             }
         }
@@ -76,64 +80,44 @@ pipeline {
                 bat '''
                 @echo off
 
-                echo ==========================================
+                echo =====================================
                 echo RIMMS LOCAL DEPLOYMENT
-                echo ==========================================
+                echo =====================================
 
-                echo Current directory:
-                cd
-
-                echo.
-                echo Build directory:
-                echo %BUILD_DIR%
-
-                echo.
-                echo Deployment directory:
-                echo %DEPLOY_DIR%
-
-                echo.
-
-                if not exist "%BUILD_DIR%" (
-                    echo ERROR: Angular build directory does not exist.
+                if not exist "%WORKSPACE%\\dist\\rimms\\browser\\index.html" (
+                    echo ERROR: Angular index.html not found.
                     echo Expected:
-                    echo %CD%\\%BUILD_DIR%
-
-                    echo.
-                    echo Actual dist contents:
-                    dir dist /s /b
-
+                    echo %WORKSPACE%\\dist\\rimms\\browser\\index.html
                     exit /b 1
                 )
 
-                echo.
-                echo Angular build directory found successfully.
+                echo Build verified successfully.
 
                 if not exist "%DEPLOY_DIR%" (
                     mkdir "%DEPLOY_DIR%"
                 )
 
                 echo.
-                echo Copying Angular build to:
+                echo Deploying from:
+                echo %WORKSPACE%\\dist\\rimms\\browser
+
+                echo.
+                echo Deploying to:
                 echo %DEPLOY_DIR%
 
-                robocopy "%BUILD_DIR%" "%DEPLOY_DIR%" /MIR
+                robocopy "%WORKSPACE%\\dist\\rimms\\browser" "%DEPLOY_DIR%" /MIR
 
                 set ROBOCOPY_RESULT=%ERRORLEVEL%
 
                 if %ROBOCOPY_RESULT% GEQ 8 (
-                    echo ERROR: Robocopy failed with code %ROBOCOPY_RESULT%
+                    echo ERROR: Deployment failed.
                     exit /b %ROBOCOPY_RESULT%
                 )
 
                 echo.
-                echo ==========================================
-                echo DEPLOYMENT SUCCESSFUL
-                echo ==========================================
-                echo Source:
-                echo %CD%\\%BUILD_DIR%
-                echo.
-                echo Destination:
-                echo %DEPLOY_DIR%
+                echo =====================================
+                echo RIMMS DEPLOYMENT SUCCESSFUL
+                echo =====================================
                 '''
             }
         }
@@ -149,6 +133,5 @@ pipeline {
         failure {
             echo 'RIMMS build/deployment failed.'
         }
-
     }
 }
