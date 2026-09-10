@@ -10,7 +10,7 @@ pipeline {
         DEPLOY_DIR = 'C:\\builds\\RIMMS\\deploy'
 
         // CHANGE THIS if your Angular project has a different name
-        BUILD_DIR = 'dist\\rimms\\browser'
+        BUILD_DIR = 'C:\\builds\\RIMMS\\deploy'
     }
 
     stages {
