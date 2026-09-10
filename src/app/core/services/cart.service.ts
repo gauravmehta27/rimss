@@ -3,7 +3,7 @@ import type { CartLine, CartTotals } from '../models/cart.model';
 import { LoggerService } from './logger.service';
 
 // v2: baskets stored before the switch to INR hold dollar prices, so they are dropped.
-export const CART_STORAGE_KEY = 'rimss.cart.v2';
+export const CART_STORAGE_KEY = 'rimms.cart.v2';
 export const FREE_SHIPPING_THRESHOLD = 20000;
 export const SHIPPING_FEE = 249;
 export const TAX_RATE = 0.08;

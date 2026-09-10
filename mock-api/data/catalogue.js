@@ -1,5 +1,5 @@
 /**
- * Deterministic catalogue generator for the RIMSS mock API.
+ * Deterministic catalogue generator for the RIMMS mock API.
  * Produces a stable data set so UI snapshots and manual QA stay reproducible.
  */
 

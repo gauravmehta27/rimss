@@ -17,7 +17,7 @@ export const routes: Routes = [
       ...toPluginRoutes(PLUGIN_MANIFESTS, environment.featureFlags),
       {
         path: '**',
-        title: 'Page not found — RIMSS',
+        title: 'Page not found — RIMMS',
         loadComponent: () =>
           import('./layout/not-found/not-found.component').then((m) => m.NotFoundComponent),
       },

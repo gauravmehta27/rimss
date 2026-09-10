@@ -6,7 +6,7 @@
   },
   "newProjectRoot": "projects",
   "projects": {
-    "rimss": {
+    "rimms": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -93,10 +93,10 @@
           },
           "configurations": {
             "production": {
-              "buildTarget": "rimss:build:production"
+              "buildTarget": "rimms:build:production"
             },
             "development": {
-              "buildTarget": "rimss:build:development"
+              "buildTarget": "rimms:build:development"
             }
           },
           "defaultConfiguration": "development"

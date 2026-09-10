@@ -11,7 +11,7 @@ const RANK: Record<LogLevel, number> = { debug: 10, info: 20, warn: 30, error: 4
 @Injectable({ providedIn: 'root' })
 export class LoggerService {
   private readonly threshold = RANK[inject(APP_CONFIG).logLevel];
-  private context = 'RIMSS';
+  private context = 'RIMMS';
 
   /** Returns a lightweight child logger that tags entries with `context`. */
   forContext(context: string): LoggerService {

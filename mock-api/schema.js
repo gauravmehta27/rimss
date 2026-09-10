@@ -1,5 +1,5 @@
 /**
- * RIMSS GraphQL schema.
+ * RIMMS GraphQL schema.
  *
  * Single source of truth for the mock backend contract. The Angular client
  * talks to one endpoint (`POST /api/products`) and selects exactly the fields it
@@ -363,7 +363,7 @@ function createRootValue(state) {
     health: () => ({ status: 'up', uptime: process.uptime() }),
 
     config: () => ({
-      appName: 'RIMSS',
+      appName: 'RIMMS',
       currency: 'INR',
       featureFlags: {
         catalog: true,

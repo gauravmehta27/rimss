@@ -1,4 +1,4 @@
-# RIMSS — Retail Inventory Management Software System
+# RIMMS — Retail Inventory Management Software System
 
 Frontend working sample for the YCompany case study.
 **Angular 22** (standalone, signals, zoneless) · **AdminLTE 4** / Bootstrap 5 · **Node.js mock API**.
@@ -20,7 +20,7 @@ opens the browser. Requests to `/api` are proxied to the mock server.
 | `npm start` | Mock API + dev server (recommended) |
 | `npm run serve:web` | Dev server only |
 | `npm run mock-api` | Mock API only |
-| `npm run build` | Production build into `dist/rimss/browser` |
+| `npm run build` | Production build into `dist/rimms/browser` |
 | `npm run preview` | Build and serve optimized app + mock API on port 3000 |
 | `npm run build:icons` | Regenerate the used Bootstrap icon subset after adding icons |
 | `npm run test` | Unit tests (watch) |

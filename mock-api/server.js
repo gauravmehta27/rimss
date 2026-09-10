@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 /**
- * RIMSS mock API.
+ * RIMMS mock API.
  *
  * Stands in for the client-provided backend so the Angular frontend can be
  * developed and demoed end-to-end. The contract is GraphQL: a single
@@ -21,7 +21,7 @@ const app = express();
 const PORT = Number(process.env.MOCK_API_PORT || 3000);
 const HOST = '127.0.0.1';
 const LATENCY_MS = Number(process.env.MOCK_API_LATENCY || 120);
-const DIST_DIR = path.join(__dirname, '..', 'dist', 'rimss', 'browser');
+const DIST_DIR = path.join(__dirname, '..', 'dist', 'rimms', 'browser');
 // `npm run preview` passes this so Lighthouse measures the real production
 // bundle over one origin, with the compression and caching a CDN would apply.
 const SERVE_DIST = process.argv.includes('--serve-dist');
@@ -123,7 +123,7 @@ app.use((err, _req, res, _next) => {
 });
 
 app.listen(PORT, HOST, () => {
-  console.log(`[mock-api] RIMSS GraphQL API listening on http://${HOST}:${PORT}/api/products`);
+  console.log(`[mock-api] RIMMS GraphQL API listening on http://${HOST}:${PORT}/api/products`);
   console.log(
     `[mock-api] ${state.products.length} products seeded, simulated latency ${LATENCY_MS}ms`,
   );
