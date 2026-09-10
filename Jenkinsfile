@@ -36,7 +36,38 @@ pipeline {
 
         stage('Build Angular') {
             steps {
-                bat 'npx ng build --configuration production'
+                bat '''
+                @echo off
+
+                echo ==========================================
+                echo CURRENT JENKINS DIRECTORY
+                echo ==========================================
+                cd
+
+                echo.
+                echo ==========================================
+                echo BUILDING ANGULAR
+                echo ==========================================
+
+                call npx ng build --configuration production
+
+                if errorlevel 1 (
+                    echo ANGULAR BUILD FAILED
+                    exit /b 1
+                )
+
+                echo.
+                echo ==========================================
+                echo CONTENTS OF DIST
+                echo ==========================================
+
+                if exist dist (
+                    dir dist /s /b
+                ) else (
+                    echo DIST DIRECTORY DOES NOT EXIST
+                    exit /b 1
+                )
+                '''
             }
         }
 
@@ -45,55 +76,64 @@ pipeline {
                 bat '''
                 @echo off
 
-                echo ==============================
-                echo RIMMS DEPLOYMENT
-                echo ==============================
+                echo ==========================================
+                echo RIMMS LOCAL DEPLOYMENT
+                echo ==========================================
 
-                echo Jenkins Workspace:
-                echo %WORKSPACE%
+                echo Current directory:
+                cd
 
-                echo Build Directory:
-                echo %WORKSPACE%\\%BUILD_DIR%
+                echo.
+                echo Build directory:
+                echo %BUILD_DIR%
 
-                echo Deployment Directory:
+                echo.
+                echo Deployment directory:
                 echo %DEPLOY_DIR%
 
                 echo.
 
-                if not exist "%WORKSPACE%\\%BUILD_DIR%" (
+                if not exist "%BUILD_DIR%" (
                     echo ERROR: Angular build directory does not exist.
+                    echo Expected:
+                    echo %CD%\\%BUILD_DIR%
+
+                    echo.
+                    echo Actual dist contents:
+                    dir dist /s /b
+
                     exit /b 1
                 )
+
+                echo.
+                echo Angular build directory found successfully.
 
                 if not exist "%DEPLOY_DIR%" (
                     mkdir "%DEPLOY_DIR%"
                 )
 
-                echo Copying application...
+                echo.
+                echo Copying Angular build to:
+                echo %DEPLOY_DIR%
 
-                robocopy "%WORKSPACE%\\%BUILD_DIR%" "%DEPLOY_DIR%" /MIR
+                robocopy "%BUILD_DIR%" "%DEPLOY_DIR%" /MIR
 
-                set ROBOCOPY_EXIT=%ERRORLEVEL%
+                set ROBOCOPY_RESULT=%ERRORLEVEL%
 
-                if %ROBOCOPY_EXIT% GEQ 8 (
-                    echo ERROR: Deployment copy failed.
-                    exit /b %ROBOCOPY_EXIT%
-                )
-
-                if exist "%WORKSPACE%\\deployment\\web.config" (
-                    copy /Y "%WORKSPACE%\\deployment\\web.config" "%DEPLOY_DIR%\\web.config"
-
-                    if errorlevel 1 (
-                        echo ERROR: Could not copy web.config
-                        exit /b 1
-                    )
+                if %ROBOCOPY_RESULT% GEQ 8 (
+                    echo ERROR: Robocopy failed with code %ROBOCOPY_RESULT%
+                    exit /b %ROBOCOPY_RESULT%
                 )
 
                 echo.
-                echo ==============================
-                echo Deployment completed successfully
-                echo Target: %DEPLOY_DIR%
-                echo ==============================
+                echo ==========================================
+                echo DEPLOYMENT SUCCESSFUL
+                echo ==========================================
+                echo Source:
+                echo %CD%\\%BUILD_DIR%
+                echo.
+                echo Destination:
+                echo %DEPLOY_DIR%
                 '''
             }
         }
