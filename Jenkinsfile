@@ -109,6 +109,9 @@ pipeline {
 
                 set ROBOCOPY_RESULT=%ERRORLEVEL%
 
+                echo.
+                echo Robocopy returned code: %ROBOCOPY_RESULT%
+
                 if %ROBOCOPY_RESULT% GEQ 8 (
                     echo ERROR: Deployment failed.
                     exit /b %ROBOCOPY_RESULT%
@@ -118,6 +121,8 @@ pipeline {
                 echo =====================================
                 echo RIMMS DEPLOYMENT SUCCESSFUL
                 echo =====================================
+
+                exit /b 0
                 '''
             }
         }
