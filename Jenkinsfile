@@ -133,6 +133,22 @@ pipeline {
         success {
             echo 'RIMMS deployment successful.'
             echo 'Application: http://localhost:8085'
+            bat '''
+            echo ===== SOURCE WEB.CONFIG =====
+            type "%WORKSPACE%\\dist\\rimms\\browser\\web.config"
+
+            echo.
+            echo ===== DEPLOYED WEB.CONFIG =====
+            type "%DEPLOY_DIR%\\web.config"
+
+            echo.
+            echo ===== SOURCE HASH =====
+            certutil -hashfile "%WORKSPACE%\\dist\\rimms\\browser\\web.config" SHA256
+
+            echo.
+            echo ===== DEPLOYED HASH =====
+            certutil -hashfile "%DEPLOY_DIR%\\web.config" SHA256
+            '''
         }
 
         failure {
