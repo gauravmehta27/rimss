@@ -13,7 +13,7 @@ npm start
 ```
 
 `npm start` runs the mock API on **:3000** and the Angular dev server on **:4200** together and
-opens the browser. Requests to `/api` are proxied to the mock server.
+opens the browser. The development environment connects directly to the mock API on **:3000**.
 
 | Script | Purpose |
 | --- | --- |

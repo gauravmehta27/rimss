@@ -43,8 +43,8 @@ npm run test        # vitest in watch mode
 npm run build       # production bundle
 ```
 
-`proxy.conf.json` forwards `/api` to the mock server, so the same relative URLs work in
-development, test and production — only the reverse proxy target changes.
+The development environment connects directly to the mock API. Production uses the deployed
+`/api` base URL, which is resolved by the hosting platform's API routing.
 
 ## Branching & versioning
 
