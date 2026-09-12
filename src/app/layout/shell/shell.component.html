@@ -1,0 +1,22 @@
+<app-loading-bar />
+<app-header />
+<app-sidebar />
+
+@if (layout.isMobile() && layout.sidebarMobileOpen()) {
+  <div class="sidebar-overlay" (click)="layout.closeMobileSidebar()"></div>
+}
+
+<main class="app-main">
+  <div class="app-content pt-3">
+    <div class="container-fluid">
+      <router-outlet />
+    </div>
+  </div>
+</main>
+
+<footer class="app-footer">
+  <strong>&copy; {{ year }} YCompany.</strong> {{ config.appName }} — Retail Inventory Management
+  Software System.
+</footer>
+
+<app-toast-host />

@@ -29,7 +29,7 @@ flowchart LR
 
 ## Build configuration
 
-- **Environments** — `src/environments/environment.ts` is swapped for `environment.production.ts` at build time via `fileReplacements`. API base URL, log level, page size and feature flags are all environment-driven; **no rebuild is needed to enable or disable a module in a lower environment** other than flipping its flag.
+- **Environments** — `src/environments/environment.ts` is swapped for `environment.production.ts` at build time via `fileReplacements`. API base URL, log level, page size and feature flags are all environment-driven; changing a feature flag requires a new build.
 - **Optimisation** — production builds apply AOT, tree-shaking, minification, CSS optimisation, license extraction and `outputHashing: all`.
 - **Budgets** — the initial bundle is capped (warn 1.1 MB / error 1.5 MB raw). A regression fails the pipeline rather than reaching users.
 - **Source maps** — generated for development; disabled for production output and uploaded separately to the error-tracking service.
@@ -43,8 +43,9 @@ npm run test        # vitest in watch mode
 npm run build       # production bundle
 ```
 
-The development environment connects directly to the mock API. Production uses the deployed
-`/api` base URL, which is resolved by the hosting platform's API routing.
+The development environment connects directly to the mock GraphQL API at
+`http://localhost:3000/api`. Production uses the deployed `/api` base URL, which is resolved by
+the hosting platform's API routing.
 
 ## Branching & versioning
 

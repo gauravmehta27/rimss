@@ -19,6 +19,7 @@ import { productImage } from '../../shared/utils/product-artwork';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CurrencyPipe, RouterLink, EmptyStateComponent],
   templateUrl: './cart.component.html',
+  styleUrl: './cart.component.scss',
 })
 export class CartComponent {
   private readonly orders = inject(OrderService);

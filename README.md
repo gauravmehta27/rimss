@@ -56,7 +56,7 @@ images. Their inline SVG backgrounds are local fallbacks, not extra network requ
 | Sample operational task — **stock control** | `src/app/features/inventory` |
 | Storefront home + basket | `src/app/features/home`, `src/app/features/cart` |
 | Responsive, cross-platform UI | AdminLTE shell in `src/app/layout` |
-| Unit tests for the business layer | 38 tests across 5 suites |
+| Unit tests for the business layer | 46 tests across 7 suites |
 | Mock APIs | `mock-api/` (Express) |
 | n-tier separation | component → store → service → HTTP interceptor chain → API |
 
@@ -96,20 +96,12 @@ navigation entry disappears and the bundle is never downloaded.
 
 ## Mock API
 
-`mock-api/server.js` (Express, in-memory, deterministic seed of 132 products / 2 182 SKUs).
+`mock-api/server.js` (Express GraphQL API, in-memory, deterministic seed of 132 products / 2 182 SKUs).
 
 | Endpoint | Description |
 | --- | --- |
-| `GET /api/products` | Search with facets, sorting and pagination |
-| `GET /api/products/featured` | Featured products |
-| `GET /api/products/facets` | Facet counts and price range |
-| `GET /api/products/suggestions?q=` | Type-ahead suggestions |
-| `GET /api/products/:id` | Product detail + related items |
-| `GET /api/offers` | Promotional offers |
-| `GET /api/inventory` | SKU stock positions (filter + paging) |
-| `GET /api/inventory/summary` | KPIs and recent stock movements |
-| `PATCH /api/inventory/:sku` | Adjust stock (`delta` or absolute `quantity`) |
-| `GET /POST /api/orders` | List / place orders |
+| `POST /api/products` | GraphQL queries and mutations for catalogue, offers, inventory and orders |
+| `GET /api/health` | Health probe for local tooling |
 
 A configurable latency (`MOCK_API_LATENCY`, default 120 ms) keeps loading states realistic.
 The mock server is a development tool only: it binds to localhost, holds no credentials and is

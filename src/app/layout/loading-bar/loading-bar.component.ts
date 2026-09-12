@@ -5,41 +5,8 @@ import { LoadingService } from '../../core/services/loading.service';
 @Component({
   selector: 'app-loading-bar',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `
-    @if (loading.isLoading()) {
-      <div class="loading-bar" role="progressbar" aria-label="Loading" aria-busy="true"></div>
-    }
-  `,
-  styles: `
-    :host {
-      display: contents;
-    }
-    .loading-bar {
-      position: fixed;
-      inset-block-start: 0;
-      inset-inline: 0;
-      height: 3px;
-      z-index: 2000;
-      background: linear-gradient(90deg, transparent, var(--bs-primary), transparent);
-      background-size: 40% 100%;
-      background-repeat: no-repeat;
-      animation: slide 1s ease-in-out infinite;
-    }
-    @keyframes slide {
-      0% {
-        background-position: -40% 0;
-      }
-      100% {
-        background-position: 140% 0;
-      }
-    }
-    @media (prefers-reduced-motion: reduce) {
-      .loading-bar {
-        animation: none;
-        background: var(--bs-primary);
-      }
-    }
-  `,
+  templateUrl: './loading-bar.component.html',
+  styleUrl: './loading-bar.component.scss',
 })
 export class LoadingBarComponent {
   protected readonly loading = inject(LoadingService);

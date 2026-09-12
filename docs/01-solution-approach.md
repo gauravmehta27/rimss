@@ -38,7 +38,7 @@ flowchart TB
   end
 
   subgraph Backend["Service tier — client supplied (mocked here)"]
-    API["REST API /api/*"]
+    API["GraphQL API POST /api/products"]
   end
 
   Clients --> CDN --> SH
@@ -120,7 +120,7 @@ navigation code changes.
 | **Latest technology** | Angular 22 (standalone, signals, zoneless), Bootstrap 5.3, AdminLTE 4.9, TypeScript strict, Vitest | `package.json` |
 | **Logging** | Correlation id on every request, level-filtered structured logger, normalised error envelopes | `LoggerService`, `correlationLoggingInterceptor` |
 | **Accessibility** | Visible focus rings, ARIA labels on icon-only controls, live regions for toasts, `prefers-reduced-motion` honoured | Global styles + component templates |
-| **Unit testability** | Business rules extracted as pure functions; DI-provided config; 38 tests across 5 suites | `npm run test:ci` |
+| **Unit testability** | Business rules extracted as pure functions; DI-provided config; 46 tests across 7 suites | `npm run test:ci` |
 | **CI** | Lint → test → production build on every push and pull request | `.github/workflows/ci.yml` |
 
 ---
@@ -162,12 +162,12 @@ navigation code changes.
 
 ### 5.1 Assumptions
 
-1. The client supplies production REST APIs; the contract mirrors the mock API in `mock-api/`.
+1. The client supplies the production GraphQL API; the contract mirrors the mock API in `mock-api/`.
 2. Authentication, authorisation and payment processing are handled by existing YCompany platforms.
 3. Product imagery, copy and pricing are supplied by the client's PIM; placeholders are used here.
 4. Single locale (en-IN) and single currency (INR) for release 1; i18n is architecturally allowed for.
 5. Browser support is the last two versions of Chrome, Edge, Firefox and Safari.
-6. Hosting is static (CDN) with a reverse proxy fronting `/api`.
+6. Hosting is static (CDN) with the production host routing `/api` to the client API.
 
 ### 5.2 In scope
 

@@ -1,0 +1,31 @@
+<div class="sidebar-brand">
+  <a routerLink="/home" class="brand-link"
+    ><span class="brand-mark">Y</span
+    ><span class="brand-text fw-semibold">{{ config.appName }}</span></a
+  >
+</div>
+<div class="sidebar-wrapper">
+  <nav class="mt-2" aria-label="Main navigation">
+    <ul class="nav sidebar-menu flex-column">
+      @for (group of registry.navGroups(); track group.name) {
+        <li class="nav-header">{{ group.name }}</li>
+        @for (item of group.items; track item.id) {
+          <li class="nav-item">
+            <a
+              class="nav-link"
+              [routerLink]="item.route"
+              routerLinkActive="active"
+              ariaCurrentWhenActive="page"
+              (click)="layout.closeMobileSidebar()"
+              ><i class="nav-icon bi {{ item.icon }}" aria-hidden="true"></i>
+              <p>{{ item.title }}</p></a
+            >
+          </li>
+        }
+      }
+    </ul>
+  </nav>
+</div>
+<div class="sidebar-footer small px-3 py-2">
+  <i class="bi bi-boxes me-1"></i>{{ registry.activePlugins().length }} modules mounted
+</div>

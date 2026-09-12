@@ -1,0 +1,27 @@
+<div
+  class="toast-container position-fixed bottom-0 end-0 p-3"
+  aria-live="polite"
+  aria-atomic="true"
+>
+  @for (toast of notifications.toasts(); track toast.id) {
+    <div
+      class="toast show align-items-center text-bg-{{ toast.level }} border-0 mb-2"
+      role="status"
+    >
+      <div class="d-flex">
+        <div class="toast-body">
+          <strong class="d-block">{{ toast.title }}</strong>
+          @if (toast.message) {
+            <span class="small">{{ toast.message }}</span>
+          }
+        </div>
+        <button
+          type="button"
+          class="btn-close btn-close-white me-2 m-auto"
+          aria-label="Dismiss notification"
+          (click)="notifications.dismiss(toast.id)"
+        ></button>
+      </div>
+    </div>
+  }
+</div>

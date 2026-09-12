@@ -7,7 +7,7 @@ Phase,Activity,Complexity,Assumption / Basis,Effort (PD),Role,Comments
 Requirement,Requirement walkthrough and clarification workshops,Medium,"2 sessions with client SMEs",2.0,BA / TL,Covers functional scope of storefront and stock control
 Requirement,NFR elaboration and acceptance criteria,High,"Performance, cross-browser, SEO, accessibility",2.0,TL,100 ms interaction budget quantified and agreed
 Requirement,UX / wireframe review and content inventory,Medium,"Home, search, showcase, bag, stock control",3.0,UX / BA,Existing brand guidelines reused
-Requirement,API contract review and gap analysis,Medium,"REST contract for catalogue, facets, inventory, orders",2.0,TL / Sr Dev,Mock contract agreed as the interface baseline
+Requirement,API contract review and gap analysis,Medium,"GraphQL contract for catalogue, facets, inventory, orders",2.0,TL / Sr Dev,Mock contract agreed as the interface baseline
 Requirement,Solution approach and estimation documentation,Medium,Case-study deliverables,3.0,TL,Solution approach + estimation + build strategy
 ,,Sub-total,,12.0,,
 ,,,,,,
@@ -19,7 +19,7 @@ Design,SEO and performance strategy,High,"Titles, canonical, JSON-LD, budgets, c
 Design,Test strategy and CI pipeline design,Medium,Unit-test scope and quality gates,2.0,TL / QA,Gates: format / test / build / budgets
 ,,Sub-total,,16.0,,
 ,,,,,,
-Development,Workspace scaffolding and build configuration,Low,"Angular CLI, environments, proxy, budgets",2.0,Sr Dev,Zoneless + standalone + Vitest
+Development,Workspace scaffolding and build configuration,Low,"Angular CLI, environments, API base URLs, budgets",2.0,Sr Dev,Zoneless + standalone + Vitest
 Development,Application shell (header / sidebar / footer / theme),High,AdminLTE grid layout + responsive behaviour,5.0,Sr Dev,Includes theme persistence and mobile overlay
 Development,Plugin core (manifest / registry / route projection),High,Feature-flag gating and lazy loading,4.0,Sr Dev,Enables zero-touch module onboarding
 Development,Cross-cutting concerns,High,"Interceptors, logger, config token, notifications",5.0,Sr Dev,Correlation ids + cache + error normalisation

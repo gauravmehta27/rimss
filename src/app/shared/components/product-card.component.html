@@ -1,0 +1,58 @@
+<article class="card product-card h-100 shadow-sm">
+  <a
+    class="product-card__media"
+    [routerLink]="['/catalog', product().id]"
+    [style.background-image]="'url(' + artwork() + ')'"
+    ><img
+      [src]="photo()"
+      [srcset]="photoSrcset()"
+      sizes="auto, (min-width: 1400px) 22vw, (min-width: 768px) 30vw, 46vw"
+      [alt]="product().name + ' — ' + product().categoryName"
+      width="400"
+      height="300"
+      loading="lazy"
+      decoding="async"
+      fetchpriority="low"
+    />
+    <div class="product-card__badges">
+      @if (product().discountPercent > 0) {
+        <span class="badge text-bg-danger">-{{ product().discountPercent }}%</span>
+      }
+      @if (product().isNew) {
+        <span class="badge text-bg-dark">New</span>
+      }
+      @if (!product().inStock) {
+        <span class="badge text-bg-secondary">Sold out</span>
+      }
+    </div></a
+  >
+  <div class="card-body d-flex flex-column">
+    <p class="text-uppercase text-body-secondary small mb-1">
+      {{ product().categoryName }} · {{ product().audience }}
+    </p>
+    <h3 class="h6 mb-1">
+      <a
+        class="stretched-none link-body-emphasis text-decoration-none"
+        [routerLink]="['/catalog', product().id]"
+        >{{ product().name }}</a
+      >
+    </h3>
+    <app-rating-stars [value]="product().rating" [reviewCount]="product().reviewCount" />
+    <div class="mt-2 mb-3">
+      <span class="fw-semibold fs-6">{{ product().price | currency: product().currency }}</span>
+      @if (product().discountPercent > 0) {
+        <span class="text-body-secondary text-decoration-line-through ms-2 small">{{
+          product().listPrice | currency: product().currency
+        }}</span>
+      }
+    </div>
+    <button
+      type="button"
+      class="btn btn-sm btn-primary mt-auto"
+      [disabled]="!product().inStock"
+      (click)="addToCart.emit(product())"
+    >
+      <i class="bi bi-bag-plus me-1"></i>{{ product().inStock ? 'Add to bag' : 'Notify me' }}
+    </button>
+  </div>
+</article>
