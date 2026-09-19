@@ -1,7 +1,25 @@
-# RIMMS — Retail Inventory Management Software System
+# RIMMS
 
-Frontend working sample for the YCompany case study.
-**Angular 22** (standalone, signals, zoneless) · **AdminLTE 4** / Bootstrap 5 · **Node.js mock API**.
+Retail Inventory Management System demo built with Angular, Bootstrap, and a local mock GraphQL API.
+
+## Overview
+
+This repository is a front-end working sample for a retail storefront and operations experience. It includes:
+
+- a plugin-based Angular app shell
+- storefront pages for home, catalog, and cart
+- an inventory management screen
+- routing and feature flags driven from a single manifest
+- a local Express + GraphQL mock API for realistic development and testing
+
+Technology stack:
+
+- Angular 22
+- standalone app configuration
+- zoneless change detection
+- AdminLTE 4 + Bootstrap 5
+- GraphQL-based mock backend
+- Node.js development tooling
 
 ---
 
@@ -12,100 +30,131 @@ npm install
 npm start
 ```
 
-`npm start` runs the mock API on **:3000** and the Angular dev server on **:4200** together and
-opens the browser. The development environment connects directly to the mock API on **:3000**.
+This runs:
+
+- the mock API on http://127.0.0.1:3000
+- the Angular dev server on http://127.0.0.1:4200
+
+The app is configured to talk to the mock API at `http://localhost:3000/api` in development.
+
+### Available scripts
 
 | Script | Purpose |
 | --- | --- |
-| `npm start` | Mock API + dev server (recommended) |
-| `npm run serve:web` | Dev server only |
-| `npm run mock-api` | Mock API only |
-| `npm run build` | Production build into `dist/rimms/browser` |
-| `npm run preview` | Build and serve optimized app + mock API on port 3000 |
-| `npm run build:icons` | Regenerate the used Bootstrap icon subset after adding icons |
-| `npm run test` | Unit tests (watch) |
-| `npm run test:ci` | Unit tests (single run) |
-| `npm run lint:format` | Prettier check |
-
-### Lighthouse validation
-
-Use `npm run preview`, then audit **http://127.0.0.1:3000/home** in Chrome Lighthouse.
-Stop the existing mock API first if port 3000 is occupied, or set `MOCK_API_PORT` to
-an unused port before starting the preview. This remains a localhost-only demo,
-not a production deployment server.
-
-Do not use the development server on port 4200 for production scores: it serves
-unminified code, source maps and development tooling. The preview serves the
-optimized build with compression, immutable caching for hashed assets, and
-revalidation for the entry document and unhashed public assets.
-
-Compare cold-cache runs using the same device and throttling settings. Record LCP,
-FCP, CLS and TBT as well as category scores; Unsplash network timing can vary.
-The initial hero image is preloaded, while product photos use responsive lazy
-images. Their inline SVG backgrounds are local fallbacks, not extra network requests.
+| `npm start` | Runs the mock API and Angular dev server together |
+| `npm run serve:web` | Runs the Angular app without the mock API |
+| `npm run mock-api` | Starts only the mock API |
+| `npm run build` | Production build for the Angular app |
+| `npm run preview` | Builds the app and serves the production bundle through the mock API |
+| `npm run build:icons` | Regenerates the Bootstrap icon subset used by the app |
+| `npm run watch` | Angular build in watch mode |
+| `npm run test` | Runs unit tests in watch mode |
+| `npm run test:ci` | Runs unit tests once with no watch |
+| `npm run lint:format` | Checks formatting with Prettier |
 
 ---
 
-## What is implemented
+## Feature set
 
-| Requirement | Where |
+The application is split into plugin-driven feature modules registered in `src/app/plugins/plugin.manifests.ts`.
+
+| Module | Description |
 | --- | --- |
-| Plugin-based architecture | `src/app/core/plugin`, `src/app/plugins/plugin.manifests.ts` |
-| Functional module — product **search** | `src/app/features/catalog/product-search` |
-| Functional module — product **showcase** | `src/app/features/catalog/product-showcase` |
-| Sample operational task — **stock control** | `src/app/features/inventory` |
-| Storefront home + basket | `src/app/features/home`, `src/app/features/cart` |
-| Responsive, cross-platform UI | AdminLTE shell in `src/app/layout` |
-| Unit tests for the business layer | 46 tests across 7 suites |
-| Mock APIs | `mock-api/` (Express) |
-| n-tier separation | component → store → service → HTTP interceptor chain → API |
+| Home | Landing page and featured products |
+| Catalog | Product search, filtering, and showcase pages |
+| Cart | Basket and order flow |
+| Inventory | Stock monitoring and operational task demo |
+
+Feature flags are defined in `src/environments/environment.ts` and gate the inclusion of routes and navigation entries.
 
 ---
 
-## Architecture at a glance
+## Architecture
 
+```text
+src/
+├── app/
+│   ├── core/
+│   │   ├── config/
+│   │   ├── graphql/
+│   │   ├── interceptors/
+│   │   ├── models/
+│   │   ├── plugin/
+│   │   ├── routing/
+│   │   └── services/
+│   ├── features/
+│   │   ├── cart/
+│   │   ├── catalog/
+│   │   ├── home/
+│   │   └── inventory/
+│   ├── layout/
+│   ├── plugins/
+│   └── shared/
+│       └── utils/
+├── environments/
+├── styles/
+├── app.routes.ts
+├── app.config.ts
+├── main.ts
+├── styles.scss
+├── index.html
+├── public/
+├── mock-api/
+├── docs/
+├── tools/
+├── angular.json
+├── package.json
+├── Jenkinsfile
+└── README.md
 ```
-src/app
-├── core/                  Framework-level, app-wide
-│   ├── config/            APP_CONFIG token + feature flags
-│   ├── interceptors/      correlation+logging · loading · cache · error
-│   ├── models/            Typed API contracts
-│   ├── plugin/            Manifest contract, registry, route projection
-│   └── services/          Data access + cross-cutting services
-├── features/              Pluggable functional modules (lazy loaded)
-│   ├── home/  catalog/  cart/  inventory/
-├── layout/                AdminLTE shell: header, sidebar, footer, toasts
-├── plugins/               THE module manifest — single registration point
-└── shared/                Presentational components and utilities
-```
 
-### Adding a new module
+### Plugin model
 
-1. Create `src/app/features/<name>/` with a `<name>.routes.ts` default export.
-2. Append one entry to `PLUGIN_MANIFESTS` in `src/app/plugins/plugin.manifests.ts`.
+The shell depends on a single manifest and derives its route registration, sidebar entries, and feature gating from it.
 
-The sidebar entry, the lazy route and the feature-flag gate are all derived from that manifest.
-No shell, routing or navigation file is touched.
+- Manifest: `src/app/plugins/plugin.manifests.ts`
+- Route generation: `src/app/core/plugin/plugin.providers.ts`
+- Shell route composition: `src/app/app.routes.ts`
 
-### Turning a module off
-
-Set its flag to `false` in `src/environments/environment*.ts`. The route is not registered, the
-navigation entry disappears and the bundle is never downloaded.
+This keeps functional modules independently pluggable without needing to touch the shell or navigation layer when adding a new feature.
 
 ---
 
 ## Mock API
 
-`mock-api/server.js` (Express GraphQL API, in-memory, deterministic seed of 132 products / 2 182 SKUs).
+The mock backend lives in `mock-api/server.js` and uses Express with a single GraphQL endpoint for product data and inventory operations.
 
-| Endpoint | Description |
+| Endpoint | Purpose |
 | --- | --- |
-| `POST /api/products` | GraphQL queries and mutations for catalogue, offers, inventory and orders |
-| `GET /api/health` | Health probe for local tooling |
+| `POST /api/products` | Executes GraphQL queries and mutations |
+| `GET /api/health` | Health check for local tooling and smoke tests |
 
-A configurable latency (`MOCK_API_LATENCY`, default 120 ms) keeps loading states realistic.
-The mock server is a development tool only: it binds to localhost, holds no credentials and is
-never deployed.
+Behavior:
+
+- deterministic in-memory seed data
+- configurable latency via `MOCK_API_LATENCY` (default: 120ms)
+- local-only dev server, no credentials or production deployment path
+- production preview mode served by the same mock API when using `npm run preview`
+
+---
+
+## CI and validation
+
+The repository includes a GitHub Actions workflow in `.github/workflows/ci.yml` that runs:
+
+- dependency install
+- formatting check
+- unit tests
+- production build
+- artifact upload
+
+Typical validation commands:
+
+```bash
+npm run lint:format
+npm run test:ci
+npm run build
+```
 
 ---
 
@@ -113,7 +162,16 @@ never deployed.
 
 | Deliverable | File |
 | --- | --- |
-| Solution approach (diagrams, architecture, NFRs, performance, scope) | [docs/01-solution-approach.md](docs/01-solution-approach.md) |
-| Build & release strategy (one pager) | [docs/02-build-strategy.md](docs/02-build-strategy.md) |
-| Estimation sheet | [docs/03-estimation-sheet.csv](docs/03-estimation-sheet.csv) |
-| CI pipeline | [.github/workflows/ci.yml](.github/workflows/ci.yml) |
+| Solution approach | `docs/01-solution-approach.md` |
+| Build and release strategy | `docs/02-build-strategy.md` |
+| Estimation sheet | `docs/03-estimation-sheet.csv` |
+| CI pipeline | `.github/workflows/ci.yml` |
+
+---
+
+## Notes
+
+- The app is intended as a local demo and development scaffold rather than a production deployment.
+- `npm run preview` is the best command to validate production-like output and performance behavior locally.
+- The project uses feature flags to keep optional capability modules off when disabled in `src/environments/environment*.ts`.
+
