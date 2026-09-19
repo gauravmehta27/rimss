@@ -6,7 +6,7 @@
  * developed and demoed end-to-end. The contract is GraphQL: a single
  * `POST /api/products` endpoint plus a plain REST health probe for tooling.
  *
- * Dev-only: no authentication, in-memory state, binds to localhost.
+ * Dev-only: no authentication, in-memory state, configurable local bind address.
  */
 
 const express = require('express');
@@ -19,7 +19,7 @@ const { createState, createSchema, createRootValue } = require('./schema');
 
 const app = express();
 const PORT = Number(process.env.MOCK_API_PORT || 3000);
-const HOST = '127.0.0.1';
+const HOST = process.env.MOCK_API_HOST || '0.0.0.0';
 const LATENCY_MS = Number(process.env.MOCK_API_LATENCY || 120);
 const DIST_DIR = path.join(__dirname, '..', 'dist', 'rimms', 'browser');
 // `npm run preview` passes this so Lighthouse measures the real production
