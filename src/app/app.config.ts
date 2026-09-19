@@ -24,6 +24,7 @@ import { errorInterceptor } from './core/interceptors/error.interceptor';
 import { loadingInterceptor } from './core/interceptors/loading.interceptor';
 import { providePlugins } from './core/plugin/plugin.providers';
 import { PLUGIN_MANIFESTS } from './plugins/plugin.manifests';
+import { provideClientHydration } from '@angular/platform-browser';
 
 registerLocaleData(localeEnIn);
 
@@ -57,5 +58,6 @@ export const appConfig: ApplicationConfig = {
     ),
 
     providePlugins(PLUGIN_MANIFESTS),
+    provideClientHydration(),
   ],
 };
