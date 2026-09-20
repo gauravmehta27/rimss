@@ -3,7 +3,7 @@ import type { Route, Routes } from '@angular/router';
 import type { FeatureFlags } from '../config/app-config';
 import { PLUGIN_MANIFEST, type PluginManifest } from './plugin.model';
 
-/** Registers functional modules with the shell. */
+/** Registers functional plugins with the shell. */
 export function providePlugins(manifests: readonly PluginManifest[]): EnvironmentProviders {
   return makeEnvironmentProviders(
     manifests.map((manifest) => ({ provide: PLUGIN_MANIFEST, multi: true, useValue: manifest })),
@@ -11,16 +11,26 @@ export function providePlugins(manifests: readonly PluginManifest[]): Environmen
 }
 
 /**
- * Projects manifests into lazily loaded child routes. Each module is a separate
- * bundle and remains on-demand, so visiting Home never evaluates other screens.
+ * Projects manifests into lazy browser routes. Each plugin remains on-demand,
+ * so visiting Home never evaluates other feature implementations.
  */
 export function toPluginRoutes(manifests: readonly PluginManifest[], flags: FeatureFlags): Routes {
   return manifests
     .filter((manifest) => manifest.requiredFlags.every((flag) => flags[flag] === true))
     .sort((a, b) => a.order - b.order)
-    .map<Route>((manifest) => ({
-      path: manifest.route,
-      loadChildren: () => manifest.loadRoutes(),
-      data: { pluginId: manifest.id, title: manifest.title, preload: false },
-    }));
+    .map(toPluginRoute);
+}
+
+function toPluginRoute(manifest: PluginManifest): Route {
+  const route: Route = {
+    path: manifest.route,
+    data: { pluginId: manifest.id, title: manifest.title, preload: false },
+  };
+
+  switch (manifest.loader.kind) {
+    case 'children':
+      return { ...route, loadChildren: manifest.loader.loadChildren };
+    case 'component':
+      return { ...route, loadComponent: manifest.loader.loadComponent };
+  }
 }

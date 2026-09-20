@@ -19,7 +19,7 @@ flowchart TB
     CDN["CDN / static hosting<br/>Brotli · immutable hashed assets · HTTP/2"]
   end
 
-  subgraph SPA["Presentation tier — Angular 22 SPA"]
+  subgraph SPA["Presentation tier — Angular 22 application"]
     SH["Application shell<br/>AdminLTE layout · router · registry"]
     P1["Module: home"]
     P2["Module: catalog"]
@@ -55,33 +55,51 @@ ever injects `HttpClient` directly.
 
 ## 2. Solution Architecture
 
-### 2.1 Pluggable module architecture
+### 2.1 Generic plugin architecture
 
-The shell has no knowledge of any feature. Each functional module publishes a
-`PluginManifest` and the shell derives everything else from it.
+The shell has no knowledge of any feature implementation. RIMSS uses a generic plugin
+manifest that decouples feature discovery from feature loading and rendering. A plugin
+may contribute lazy-loaded route/module children or a standalone component. Rendering
+strategy is independently configurable, enabling CSR, SSR or prerendering without
+changing the application shell.
 
 ```mermaid
 flowchart LR
   MAN["plugin.manifests.ts<br/><i>single registration point</i>"] --> PROV["providePlugins()"]
-  MAN --> RT["toPluginRoutes()"]
+  MAN --> LOAD["Loading strategy"]
+  MAN --> RENDER["Rendering strategy"]
+  LOAD --> CHILDREN["loadChildren"]
+  LOAD --> COMPONENT["loadComponent"]
+  RENDER --> CSR["CSR"]
+  RENDER --> SSR["SSR"]
+  RENDER --> SSG["Prerender"]
+  CHILDREN & COMPONENT --> RT["toPluginRoutes()"]
+  CSR & SSR & SSG --> SRT["toPluginServerRoutes()"]
   PROV --> REG["PluginRegistryService"]
   REG --> NAV["Sidebar navigation"]
-  RT --> ROUTER["Router — lazy loadChildren"]
+  RT --> ROUTER["Angular browser routes"]
+  SRT --> SERVER["Angular server routes"]
   FLAGS["Feature flags (environment)"] --> REG
   FLAGS --> RT
+  FLAGS --> SRT
 ```
 
 | Concern | Mechanism |
 | --- | --- |
 | Registration | One entry in `src/app/plugins/plugin.manifests.ts` |
-| Isolation | Module owns its routes, components, store and styles |
-| Loading | `loadChildren` → separate bundle, fetched on first navigation |
+| Isolation | Plugin owns its routes or component, store and styles |
+| Loading | Discriminated `loader`: lazy `loadChildren` or lazy `loadComponent` |
+| Rendering | Independent `renderMode`: `client`, `server` or `prerender`; omitted means `server` |
 | Navigation | Generated from the registry — no shell edits |
-| Enable / disable | `requiredFlags` checked against `FeatureFlags`; a disabled module emits no route, so its bundle is never requested |
+| Enable / disable | `requiredFlags` checked against `FeatureFlags`; a disabled plugin emits no route, so its bundle is never requested |
 | Runtime extension | `PluginRegistryService.register()` for manifests delivered late |
 
-**Adding a module = create a folder + add one manifest entry.** No shell, routing or
+**Adding a plugin = create a folder + add one manifest entry.** No shell, routing or
 navigation code changes.
+
+Loading answers what Angular fetches; rendering answers how the same URL receives its
+initial HTML. Neither choice implies the other. A route-table plugin and a standalone
+component plugin can each use CSR, SSR or prerendering without changing the shell.
 
 ### 2.2 Layer responsibilities
 
@@ -115,7 +133,7 @@ navigation code changes.
 | **Response within 100 ms** | Zoneless change detection with `OnPush`; signal-based state; global progress bar starts on the first byte of any request; skeleton placeholders instead of blank regions; 250 ms debounce + `switchMap` on search | `LoadingService` + `loadingInterceptor`; `CardSkeletonComponent`; typeahead in the header |
 | **Initial load** (was > 60 s) | Route-level code splitting; initial payload ≈ **166 kB** transferred (gzip); vendor CSS shipped once; product photography is lazy-loaded, CDN-resized and backed by an inline SVG placeholder; idle-time preloading of feature chunks | `ng build` output; `withPreloading(PreloadAllModules)` |
 | **Fast product search** | Server-side pagination + faceting; only 12 cards rendered per page; short-lived HTTP cache for facets/offers; cancelled in-flight requests | `CatalogStore`, `cacheInterceptor` |
-| **SEO** | Per-route title/description/canonical, Open Graph, JSON-LD `Product` and `OnlineStore` schema, semantic landmarks and heading order, descriptive `alt` text, crawlable filter URLs | `SeoService`, `index.html` |
+| **SEO** | Optional SSR/prerendering plus per-route title/description/canonical, Open Graph, JSON-LD `Product` and `OnlineStore` schema, semantic landmarks and heading order, descriptive `alt` text, crawlable filter URLs | `plugin.server-routes.ts`, `SeoService`, `index.html` |
 | **Trend-ready / scalable** | Pluggable modules, design tokens as CSS custom properties, standalone components, no NgModules | `PluginManifest`, `styles.scss` |
 | **Latest technology** | Angular 22 (standalone, signals, zoneless), Bootstrap 5.3, AdminLTE 4.9, TypeScript strict, Vitest | `package.json` |
 | **Logging** | Correlation id on every request, level-filtered structured logger, normalised error envelopes | `LoggerService`, `correlationLoggingInterceptor` |
@@ -139,7 +157,7 @@ navigation code changes.
 
 ### 4.2 Techniques applied
 
-1. **Code splitting per module** — the shell downloads only what the first route needs.
+1. **Code splitting per plugin** — lazy route children or components keep unrelated features out of the initial execution path.
 2. **Idle preloading** — remaining feature chunks are fetched after first paint, so subsequent navigation has no network cost.
 3. **Zoneless change detection** — no `zone.js` monkey-patching; Angular re-renders only the components whose signals changed.
 4. **`OnPush` everywhere** — every component in the application declares it explicitly.
@@ -151,7 +169,7 @@ navigation code changes.
 
 ### 4.3 Recommended next steps for production
 
-- Enable SSR/SSG (`@angular/ssr`) for crawler-perfect HTML and a faster LCP.
+- Tune each public route's SSR/prerender policy as production content and deployment constraints become known.
 - Serve client-owned product imagery as AVIF/WebP through `NgOptimizedImage` with `priority` on the hero.
 - Add a service worker for offline browsing of the last-viewed catalogue page.
 - Wire real-user monitoring (Core Web Vitals) into the existing `LoggerService` transport.
@@ -167,12 +185,12 @@ navigation code changes.
 3. Product imagery, copy and pricing are supplied by the client's PIM; placeholders are used here.
 4. Single locale (en-IN) and single currency (INR) for release 1; i18n is architecturally allowed for.
 5. Browser support is the last two versions of Chrome, Edge, Firefox and Safari.
-6. Hosting is static (CDN) with the production host routing `/api` to the client API.
+6. Production hosting supports the Angular Node SSR output, with `/api` routed to the client API.
 
 ### 5.2 In scope
 
 - Angular application shell with AdminLTE 4 responsive layout and light/dark themes.
-- Pluggable module architecture with feature-flag gating and lazy loading.
+- Generic plugin architecture with feature-flag gating, lazy loading and independent rendering policy.
 - Home / storefront landing screen with offers, categories and featured products.
 - Product **search** screen: full-text search, faceted filters, sorting, pagination, deep-linkable URLs.
 - Product **showcase** (detail) screen: variants, live stock, related products, JSON-LD.
@@ -186,7 +204,7 @@ navigation code changes.
 - Backend implementation, persistence and integrations (ERP, PIM, payments, tax, shipping).
 - Real authentication, user accounts, saved addresses and order history beyond the demo endpoint.
 - Payment gateway, invoicing and returns processing.
-- Server-side rendering, PWA/offline mode and push notifications.
+- PWA/offline mode and push notifications.
 - Content management, marketing automation, A/B testing and analytics tooling.
 - Multi-language, multi-currency and multi-region storefronts.
 - End-to-end and visual-regression automation (unit testing only for this sample).

@@ -18,7 +18,7 @@ function manifest(overrides: Partial<PluginManifest> = {}): PluginManifest {
     order: 20,
     showInNav: true,
     requiredFlags: ['catalog'],
-    loadRoutes: () => Promise.resolve([]),
+    loader: { kind: 'children', loadChildren: () => Promise.resolve([]) },
     ...overrides,
   };
 }
@@ -84,6 +84,31 @@ describe('PluginRegistryService', () => {
     expect(registry.navItems().map((item) => item.title)).toEqual(['Home', 'Stock']);
   });
 
+  it('generates the same navigation metadata for either loader type', () => {
+    const registry = configure([
+      manifest(),
+      manifest({
+        id: 'account',
+        title: 'Account',
+        route: 'account',
+        order: 30,
+        requiredFlags: [],
+        loader: {
+          kind: 'component',
+          loadComponent: () =>
+            import('../../layout/not-found/not-found.component').then(
+              (module) => module.NotFoundComponent,
+            ),
+        },
+      }),
+    ]);
+
+    expect(registry.navItems().map(({ id, title, route }) => ({ id, title, route }))).toEqual([
+      { id: 'catalog', title: 'Shop', route: 'catalog' },
+      { id: 'account', title: 'Account', route: 'account' },
+    ]);
+  });
+
   it('groups navigation entries by section', () => {
     const registry = configure([
       manifest({
@@ -118,18 +143,39 @@ describe('PluginRegistryService', () => {
 });
 
 describe('toPluginRoutes', () => {
-  it('produces one lazily loaded route per enabled module', () => {
+  it('maps a children loader to loadChildren and preserves ordering and metadata', () => {
     const routes = toPluginRoutes(
       [
-        manifest(),
         manifest({ id: 'inventory', route: 'inventory', order: 40, requiredFlags: ['inventory'] }),
+        manifest(),
       ],
       environment.featureFlags,
     );
 
     expect(routes.map((route) => route.path)).toEqual(['catalog', 'inventory']);
     expect(routes.every((route) => typeof route.loadChildren === 'function')).toBe(true);
+    expect(routes.every((route) => route.loadComponent === undefined)).toBe(true);
     expect(routes[0].data).toEqual({ pluginId: 'catalog', title: 'Shop', preload: false });
+  });
+
+  it('maps a standalone component loader to loadComponent', () => {
+    const routes = toPluginRoutes(
+      [
+        manifest({
+          loader: {
+            kind: 'component',
+            loadComponent: () =>
+              import('../../layout/not-found/not-found.component').then(
+                (module) => module.NotFoundComponent,
+              ),
+          },
+        }),
+      ],
+      environment.featureFlags,
+    );
+
+    expect(routes[0].loadComponent).toBeTypeOf('function');
+    expect(routes[0].loadChildren).toBeUndefined();
   });
 
   it('does not emit a route for a disabled module, so the bundle is never requested', () => {

@@ -15,7 +15,7 @@ function manifest(overrides: Partial<PluginManifest> = {}): PluginManifest {
     order: 20,
     showInNav: true,
     requiredFlags: ['catalog'],
-    loadRoutes: () => Promise.resolve([]),
+    loader: { kind: 'children', loadChildren: () => Promise.resolve([]) },
     ...overrides,
   };
 }

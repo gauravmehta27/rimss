@@ -19,7 +19,10 @@ export const PLUGIN_MANIFESTS: readonly PluginManifest[] = [
     order: 10,
     showInNav: true,
     requiredFlags: [],
-    loadRoutes: () => import('../features/home/home.routes').then((m) => m.default),
+    loader: {
+      kind: 'children',
+      loadChildren: () => import('../features/home/home.routes').then((m) => m.default),
+    },
   },
   {
     id: 'catalog',
@@ -32,7 +35,10 @@ export const PLUGIN_MANIFESTS: readonly PluginManifest[] = [
     order: 20,
     showInNav: true,
     requiredFlags: ['catalog', 'search'],
-    loadRoutes: () => import('../features/catalog/catalog.routes').then((m) => m.default),
+    loader: {
+      kind: 'children',
+      loadChildren: () => import('../features/catalog/catalog.routes').then((m) => m.default),
+    },
   },
   {
     id: 'cart',
@@ -45,7 +51,10 @@ export const PLUGIN_MANIFESTS: readonly PluginManifest[] = [
     order: 30,
     showInNav: true,
     requiredFlags: ['cart'],
-    loadRoutes: () => import('../features/cart/cart.routes').then((m) => m.default),
+    loader: {
+      kind: 'children',
+      loadChildren: () => import('../features/cart/cart.routes').then((m) => m.default),
+    },
   },
   {
     id: 'inventory',
@@ -58,6 +67,9 @@ export const PLUGIN_MANIFESTS: readonly PluginManifest[] = [
     order: 40,
     showInNav: true,
     requiredFlags: ['inventory'],
-    loadRoutes: () => import('../features/inventory/inventory.routes').then((m) => m.default),
+    loader: {
+      kind: 'children',
+      loadChildren: () => import('../features/inventory/inventory.routes').then((m) => m.default),
+    },
   },
 ];

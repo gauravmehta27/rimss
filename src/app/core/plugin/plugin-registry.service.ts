@@ -4,11 +4,11 @@ import { LoggerService } from '../services/logger.service';
 import { PLUGIN_MANIFEST, type NavItem, type PluginManifest } from './plugin.model';
 
 /**
- * Runtime registry of functional modules.
+ * Runtime registry of functional plugins.
  *
- * Modules are contributed through the `PLUGIN_MANIFEST` multi-provider, filtered
+ * Plugins are contributed through the `PLUGIN_MANIFEST` multi-provider, filtered
  * against the active feature flags, and exposed to the shell as navigation
- * metadata. Nothing in the shell imports a feature module directly.
+ * metadata. Loading and rendering strategies do not affect the registry.
  */
 @Injectable({ providedIn: 'root' })
 export class PluginRegistryService {
@@ -18,7 +18,7 @@ export class PluginRegistryService {
 
   private readonly manifests = signal<readonly PluginManifest[]>(dedupe(this.contributed));
 
-  /** Modules whose feature flags are all satisfied, in declared display order. */
+  /** Plugins whose feature flags are all satisfied, in declared display order. */
   readonly activePlugins = computed(() =>
     this.manifests()
       .filter((plugin) => isEnabled(plugin, this.config.featureFlags))
@@ -52,21 +52,21 @@ export class PluginRegistryService {
   constructor() {
     const skipped = this.manifests().filter((p) => !isEnabled(p, this.config.featureFlags));
     this.logger.info(
-      `${this.activePlugins().length} module(s) mounted`,
+      `${this.activePlugins().length} plugin(s) mounted`,
       this.activePlugins().map((p) => p.id),
     );
     if (skipped.length) {
       this.logger.warn(
-        'module(s) skipped by feature flags',
+        'plugin(s) skipped by feature flags',
         skipped.map((p) => p.id),
       );
     }
   }
 
-  /** Late registration hook, e.g. for modules delivered by a remote manifest. */
+  /** Late registration hook for additional plugin manifests. */
   register(plugin: PluginManifest): void {
     if (this.manifests().some((existing) => existing.id === plugin.id)) {
-      this.logger.warn(`duplicate module id ignored: ${plugin.id}`);
+      this.logger.warn(`duplicate plugin id ignored: ${plugin.id}`);
       return;
     }
     this.manifests.update((list) => [...list, plugin]);

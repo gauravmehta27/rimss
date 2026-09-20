@@ -33,7 +33,7 @@ npm start
 This runs:
 
 - the mock API on http://127.0.0.1:3000
-- the Angular dev server on http://127.0.0.1:4200
+- the Angular SSR server on http://localhost:4000
 
 The app is configured to talk to the mock API at `http://localhost:3000/api` in development.
 
@@ -41,7 +41,7 @@ The app is configured to talk to the mock API at `http://localhost:3000/api` in 
 
 | Script | Purpose |
 | --- | --- |
-| `npm start` | Runs the mock API and Angular dev server together |
+| `npm start` | Builds and runs the Angular SSR server with the mock API |
 | `npm run serve:web` | Runs the Angular app without the mock API |
 | `npm run mock-api` | Starts only the mock API |
 | `npm run build` | Production build for the Angular app |
@@ -110,13 +110,18 @@ src/
 
 ### Plugin model
 
-The shell depends on a single manifest and derives its route registration, sidebar entries, and feature gating from it.
+RIMSS uses a generic plugin manifest that decouples feature discovery from feature loading and rendering. A plugin may contribute lazy-loaded route/module children or a standalone component. Rendering strategy is independently configurable, enabling CSR, SSR or prerendering without changing the application shell.
+
+The shell derives browser routes, sidebar entries, and feature gating from the manifest. Browser loading uses a discriminated `loader` strategy (`children` or `component`), while server-specific code maps the optional framework-neutral `renderMode` (`client`, `server`, or `prerender`) to Angular SSR configuration. Omitting `renderMode` defaults to server rendering.
 
 - Manifest: `src/app/plugins/plugin.manifests.ts`
 - Route generation: `src/app/core/plugin/plugin.providers.ts`
+- Server-route generation: `src/app/core/plugin/plugin.server-routes.ts`
 - Shell route composition: `src/app/app.routes.ts`
 
 This keeps functional modules independently pluggable without needing to touch the shell or navigation layer when adding a new feature.
+
+Lazy loading primarily provides modularity, pluggability, and initial bundle optimization; it does not itself provide SSR. SSR or prerendering can be selected independently for SEO-sensitive public routes. Authenticated or personalized pages such as Cart, and operational pages such as Inventory, can remain client-rendered. Semantic HTML, titles, meta descriptions, canonical URLs, and structured data apply regardless of the loading mechanism.
 
 ---
 

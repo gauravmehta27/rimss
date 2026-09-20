@@ -8,7 +8,7 @@ flowchart LR
   B --> C["Static checks<br/>prettier --check · tsc strict"]
   C --> D["Unit tests<br/>vitest --no-watch"]
   D --> E["Production build<br/>ng build (budgets enforced)"]
-  E --> F["Artifact<br/>dist/rimms/browser"]
+  E --> F["Artifact<br/>dist/rimms browser + server"]
   F --> G{"Branch?"}
   G -- "feature/*" --> H["Preview environment"]
   G -- "main" --> I["Deploy DEV"]
@@ -24,21 +24,21 @@ flowchart LR
 | 2 | Format | `npm run lint:format` | Prettier clean |
 | 3 | Type check + tests | `npm run test:ci` | 100% suites green; business-layer coverage required |
 | 4 | Build | `npm run build` | Bundle budgets not exceeded; zero compiler errors |
-| 5 | Package | Upload `dist/rimms/browser` | Immutable, content-hashed filenames |
-| 6 | Deploy | Static upload + CDN invalidation | Manual approval for UAT and PROD |
+| 5 | Package | Upload `dist/rimms` | Browser assets and Angular Node server output |
+| 6 | Deploy | Deploy SSR host + browser assets | Manual approval for UAT and PROD |
 
 ## Build configuration
 
 - **Environments** — `src/environments/environment.ts` is swapped for `environment.production.ts` at build time via `fileReplacements`. API base URL, log level, page size and feature flags are all environment-driven; changing a feature flag requires a new build.
 - **Optimisation** — production builds apply AOT, tree-shaking, minification, CSS optimisation, license extraction and `outputHashing: all`.
-- **Budgets** — the initial bundle is capped (warn 1.1 MB / error 1.5 MB raw). A regression fails the pipeline rather than reaching users.
+- **Budgets** — the initial bundle is capped (warn 600 kB / error 700 kB raw). A regression beyond the error threshold fails the pipeline rather than reaching users.
 - **Source maps** — generated for development; disabled for production output and uploaded separately to the error-tracking service.
 
 ## Local development
 
 ```bash
 npm install
-npm start           # mock API (:3000) + dev server (:4200) together
+npm start           # mock API (:3000) + Angular SSR server (:4000)
 npm run test        # vitest in watch mode
 npm run build       # production bundle
 ```
@@ -56,8 +56,8 @@ the hosting platform's API routing.
 
 ## Rollback
 
-Artifacts are immutable and content-hashed. Rollback is a CDN pointer switch to the previous
-build — no rebuild, no database migration, typically under a minute.
+Artifacts are immutable and versioned. Rollback deploys the previous Angular server artifact
+and browser assets together, with no rebuild or database migration.
 
 ## Quality gates summary
 
