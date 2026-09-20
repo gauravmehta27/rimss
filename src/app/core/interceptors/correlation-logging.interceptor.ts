@@ -4,9 +4,7 @@ import { tap } from 'rxjs';
 import { LoggerService } from '../services/logger.service';
 
 /**
- * Stamps every outbound call with a correlation id and records round-trip time,
- * giving the "enough logging to debug any error condition" design requirement a
- * single, consistent implementation.
+ * Stamps every outbound call with a correlation id and records round-trip time
  */
 export const correlationLoggingInterceptor: HttpInterceptorFn = (req, next) => {
   const logger = inject(LoggerService).forContext('Http');
@@ -27,7 +25,7 @@ export const correlationLoggingInterceptor: HttpInterceptorFn = (req, next) => {
       },
       error: (error: unknown) => {
         const elapsed = Math.round(performance.now() - startedAt);
-        logger.error(`✖ ${req.method} ${req.urlWithParams} failed after ${elapsed}ms`, {
+        logger.error(`${req.method} ${req.urlWithParams} failed after ${elapsed}ms`, {
           correlationId,
           error,
         });

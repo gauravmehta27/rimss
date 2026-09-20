@@ -7,7 +7,7 @@ pipeline {
     }
 
     environment {
-        DEPLOY_DIR = 'C:\\builds\\RIMMS\\deploy'
+        DEPLOY_DIR = 'C:\\builds\\RIMSS\\deploy'
     }
 
     stages {
@@ -70,6 +70,15 @@ pipeline {
                 echo.
                 echo Build completed successfully.
 
+                if not exist "%WORKSPACE%\\dist\\rimss\\server\\server.mjs" (
+                    echo ERROR: Angular SSR server output not found.
+                    echo Expected:
+                    echo %WORKSPACE%\\dist\\rimss\\server\\server.mjs
+                    exit /b 1
+                )
+
+                echo SSR server output verified successfully.
+
                 dir dist /s /b
                 '''
             }
@@ -81,17 +90,21 @@ pipeline {
                 @echo off
 
                 echo =====================================
-                echo RIMMS LOCAL DEPLOYMENT
+                echo RIMSS LOCAL DEPLOYMENT
                 echo =====================================
 
-                if not exist "%WORKSPACE%\\dist\\rimms\\browser\\index.html" (
-                    echo ERROR: Angular index.html not found.
+                if not exist "%WORKSPACE%\\dist\\rimss\\browser\\index.csr.html" (
+                    echo ERROR: Angular index.csr.html not found.
                     echo Expected:
-                    echo %WORKSPACE%\\dist\\rimms\\browser\\index.html
+                    echo %WORKSPACE%\\dist\\rimss\\browser\\index.csr.html
                     exit /b 1
                 )
 
                 echo Build verified successfully.
+
+                echo.
+                echo SSR server output:
+                echo %WORKSPACE%\\dist\\rimss\\server\\server.mjs
 
                 if not exist "%DEPLOY_DIR%" (
                     mkdir "%DEPLOY_DIR%"
@@ -99,13 +112,14 @@ pipeline {
 
                 echo.
                 echo Deploying from:
-                echo %WORKSPACE%\\dist\\rimms\\browser
+                echo %WORKSPACE%\\dist\\rimss\\browser
 
                 echo.
                 echo Deploying to:
                 echo %DEPLOY_DIR%
 
-                robocopy "%WORKSPACE%\\dist\\rimms\\browser" "%DEPLOY_DIR%" /MIR
+                rem Deploy the browser bundle to the IIS site root.
+                robocopy "%WORKSPACE%\\dist\\rimss\\browser" "%DEPLOY_DIR%" /MIR
 
                 set ROBOCOPY_RESULT=%ERRORLEVEL%
 
@@ -118,8 +132,30 @@ pipeline {
                 )
 
                 echo.
+                echo Deploying SSR server bundle to:
+                echo %DEPLOY_DIR%\\server
+
+                rem Keep the server beside browser so server.mjs resolves ../browser.
+                robocopy "%WORKSPACE%\\dist\\rimss\\server" "%DEPLOY_DIR%\\server" /MIR
+
+                set ROBOCOPY_RESULT=%ERRORLEVEL%
+
+                echo.
+                echo SSR robocopy returned code: %ROBOCOPY_RESULT%
+
+                if %ROBOCOPY_RESULT% GEQ 8 (
+                    echo ERROR: SSR deployment failed.
+                    exit /b %ROBOCOPY_RESULT%
+                )
+
+                if not exist "%DEPLOY_DIR%\\server\\server.mjs" (
+                    echo ERROR: Deployed SSR server output not found.
+                    exit /b 1
+                )
+
+                echo.
                 echo =====================================
-                echo RIMMS DEPLOYMENT SUCCESSFUL
+                echo RIMSS DEPLOYMENT SUCCESSFUL
                 echo =====================================
 
                 exit /b 0
@@ -131,11 +167,11 @@ pipeline {
     post {
 
         success {
-            echo 'RIMMS deployment successful.'
+            echo 'RIMSS deployment successful.'
             echo 'Application: http://localhost:8085'
             bat '''
             echo ===== SOURCE WEB.CONFIG =====
-            type "%WORKSPACE%\\dist\\rimms\\browser\\web.config"
+            type "%WORKSPACE%\\dist\\rimss\\browser\\web.config"
 
             echo.
             echo ===== DEPLOYED WEB.CONFIG =====
@@ -143,16 +179,20 @@ pipeline {
 
             echo.
             echo ===== SOURCE HASH =====
-            certutil -hashfile "%WORKSPACE%\\dist\\rimms\\browser\\web.config" SHA256
+            certutil -hashfile "%WORKSPACE%\\dist\\rimss\\browser\\web.config" SHA256
 
             echo.
             echo ===== DEPLOYED HASH =====
             certutil -hashfile "%DEPLOY_DIR%\\web.config" SHA256
+
+            echo.
+            echo ===== DEPLOYED SSR SERVER =====
+            dir "%DEPLOY_DIR%\\server" /s /b
             '''
         }
 
         failure {
-            echo 'RIMMS build/deployment failed.'
+            echo 'RIMSS build/deployment failed.'
         }
     }
 }

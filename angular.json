@@ -6,7 +6,7 @@
   },
   "newProjectRoot": "projects",
   "projects": {
-    "rimms": {
+    "rimss": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -21,7 +21,7 @@
           "builder": "@angular/build:application",
           "options": {
             "outputPath": {
-              "base": "dist/rimms",
+              "base": "dist/rimss",
               "browser": "browser"
             },
             "browser": "src/main.ts",
@@ -109,10 +109,10 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "rimms:build:production"
+              "buildTarget": "rimss:build:production"
             },
             "development": {
-              "buildTarget": "rimms:build:development"
+              "buildTarget": "rimss:build:development"
             }
           },
           "defaultConfiguration": "development"

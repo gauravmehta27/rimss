@@ -2,7 +2,6 @@ import { InjectionToken } from '@angular/core';
 
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error' | 'off';
 
-/** Every pluggable module is gated behind a flag so modules can ship dark. */
 export interface FeatureFlags {
   catalog: boolean;
   search: boolean;

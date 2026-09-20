@@ -1,4 +1,4 @@
-# RIMMS
+# RIMSS
 
 Retail Inventory Management System demo built with Angular, Bootstrap, and a local mock GraphQL API.
 

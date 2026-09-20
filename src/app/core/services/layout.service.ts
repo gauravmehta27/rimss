@@ -3,8 +3,8 @@ import { Injectable, computed, effect, inject, signal } from '@angular/core';
 
 export type ThemeMode = 'light' | 'dark';
 
-const THEME_KEY = 'rimms.theme';
-const SIDEBAR_KEY = 'rimms.sidebar.collapsed';
+const THEME_KEY = 'rimss.theme';
+const SIDEBAR_KEY = 'rimss.sidebar.collapsed';
 const MOBILE_BREAKPOINT = 992; // matches AdminLTE `sidebar-expand-lg`
 
 /**

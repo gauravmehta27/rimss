@@ -20,7 +20,7 @@ describe('SeoService', () => {
 
   it('sets the page title suffixed with the app and brand name', () => {
     service.apply({ title: 'Your bag', description: 'Review your bag.' });
-    expect(TestBed.inject(Title).getTitle()).toBe('Your bag | RIMMS — YCompany');
+    expect(TestBed.inject(Title).getTitle()).toBe('Your bag | RIMSS — YCompany');
   });
 
   it('publishes description, keywords and open graph tags', () => {
@@ -34,7 +34,7 @@ describe('SeoService', () => {
 
     expect(meta.getTag('name="description"')?.content).toBe('Browse the collection.');
     expect(meta.getTag('name="keywords"')?.content).toBe('sweaters, corduroy');
-    expect(meta.getTag('property="og:title"')?.content).toBe('Shop | RIMMS — YCompany');
+    expect(meta.getTag('property="og:title"')?.content).toBe('Shop | RIMSS — YCompany');
     expect(meta.getTag('property="og:image"')?.content).toBe('https://example.com/hero.jpg');
   });
 

@@ -3,13 +3,6 @@ import { APP_CONFIG, type FeatureFlags } from '../config/app-config';
 import { LoggerService } from '../services/logger.service';
 import { PLUGIN_MANIFEST, type NavItem, type PluginManifest } from './plugin.model';
 
-/**
- * Runtime registry of functional plugins.
- *
- * Plugins are contributed through the `PLUGIN_MANIFEST` multi-provider, filtered
- * against the active feature flags, and exposed to the shell as navigation
- * metadata. Loading and rendering strategies do not affect the registry.
- */
 @Injectable({ providedIn: 'root' })
 export class PluginRegistryService {
   private readonly config = inject(APP_CONFIG);
@@ -18,7 +11,6 @@ export class PluginRegistryService {
 
   private readonly manifests = signal<readonly PluginManifest[]>(dedupe(this.contributed));
 
-  /** Plugins whose feature flags are all satisfied, in declared display order. */
   readonly activePlugins = computed(() =>
     this.manifests()
       .filter((plugin) => isEnabled(plugin, this.config.featureFlags))

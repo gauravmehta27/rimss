@@ -4,7 +4,7 @@ import type { PluginManifest } from '../core/plugin/plugin.model';
  * The application's module manifest.
  *
  * This array is the *only* place the shell learns about functional modules.
- * Adding a feature to RIMMS means dropping a folder under `features/` and
+ * Adding a feature to RIMSS means dropping a folder under `features/` and
  * appending one entry here — no shell, routing or navigation code changes.
  */
 export const PLUGIN_MANIFESTS: readonly PluginManifest[] = [

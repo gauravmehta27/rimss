@@ -19,19 +19,12 @@ export interface GraphQlResponse<T> {
 }
 
 export interface GraphQlOptions {
-  /** Enables the in-memory response cache for idempotent reads. */
   cacheTtlMs?: number;
-  /** Suppresses the global progress bar for background reads. */
   silent?: boolean;
 }
 
 const OPERATION_NAME = /\b(?:query|mutation)\s+(\w+)/;
 
-/**
- * Single transport for the whole app: every read and write is one POST to
- * `/products`. Callers get a plain `Observable<T>` of the `data` payload, so the
- * feature layer never sees GraphQL envelopes.
- */
 @Injectable({ providedIn: 'root' })
 export class GraphQlClient {
   private readonly http = inject(HttpClient);
@@ -66,10 +59,6 @@ export class GraphQlClient {
     return this.query<T>(document, variables);
   }
 
-  /**
-   * GraphQL reports execution failures inside a 200 response, so errors are
-   * normalised here into the same `ApiError` the HTTP interceptor produces.
-   */
   private unwrap<T>(response: GraphQlResponse<T>): T {
     const [failure] = response.errors ?? [];
 
@@ -78,7 +67,6 @@ export class GraphQlClient {
         code: failure.extensions?.code ?? 'GRAPHQL_ERROR',
         message: failure.message,
       };
-      // "Not found" is a legitimate outcome the screen renders itself.
       if (!error.code.endsWith('NOT_FOUND')) {
         this.notifications.error('Request failed', error.message);
       }

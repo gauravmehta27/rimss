@@ -1,4 +1,4 @@
-/* RIMMS global stylesheet
+/* RIMSS global stylesheet
  * Layered so the vendor baseline (Bootstrap → AdminLTE → icons) can be upgraded
  * independently of the brand overrides that follow.
  */
@@ -7,30 +7,30 @@
 @import 'styles/icons';
 
 :root {
-  --rimms-brand: #2f4f3a;
-  --rimms-brand-soft: #8a9a7b;
-  --bs-primary: var(--rimms-brand);
+  --rimss-brand: #2f4f3a;
+  --rimss-brand-soft: #8a9a7b;
+  --bs-primary: var(--rimss-brand);
   --bs-primary-rgb: 47, 79, 58;
-  --bs-link-color: var(--rimms-brand);
+  --bs-link-color: var(--rimss-brand);
   --bs-link-hover-color: #1f3527;
   --bs-body-font-family: 'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif;
 }
 
 .btn-primary {
-  --bs-btn-bg: var(--rimms-brand);
-  --bs-btn-border-color: var(--rimms-brand);
+  --bs-btn-bg: var(--rimss-brand);
+  --bs-btn-border-color: var(--rimss-brand);
   --bs-btn-hover-bg: #24402d;
   --bs-btn-hover-border-color: #24402d;
   --bs-btn-active-bg: #1c3223;
-  --bs-btn-disabled-bg: var(--rimms-brand-soft);
-  --bs-btn-disabled-border-color: var(--rimms-brand-soft);
+  --bs-btn-disabled-bg: var(--rimss-brand-soft);
+  --bs-btn-disabled-border-color: var(--rimss-brand-soft);
 }
 
 .btn-outline-primary {
-  --bs-btn-color: var(--rimms-brand);
-  --bs-btn-border-color: var(--rimms-brand);
-  --bs-btn-hover-bg: var(--rimms-brand);
-  --bs-btn-hover-border-color: var(--rimms-brand);
+  --bs-btn-color: var(--rimss-brand);
+  --bs-btn-border-color: var(--rimss-brand);
+  --bs-btn-hover-bg: var(--rimss-brand);
+  --bs-btn-hover-border-color: var(--rimss-brand);
 }
 
 h1,
@@ -42,7 +42,7 @@ h2,
 
 /* Keyboard users must always be able to see where focus is. */
 :focus-visible {
-  outline: 2px solid var(--rimms-brand);
+  outline: 2px solid var(--rimss-brand);
   outline-offset: 2px;
 }
 

@@ -1,4 +1,4 @@
-# RIMMS — Solution Approach
+# RIMSS — Solution Approach
 
 **Retail Inventory Management Software System · YCompany · Frontend Solution**
 Version 1.0 · Angular 22 + AdminLTE 4

@@ -1,4 +1,4 @@
-# RIMMS — Build & Release Strategy (one page)
+# RIMSS — Build & Release Strategy (one page)
 
 ## Pipeline
 
@@ -8,7 +8,7 @@ flowchart LR
   B --> C["Static checks<br/>prettier --check · tsc strict"]
   C --> D["Unit tests<br/>vitest --no-watch"]
   D --> E["Production build<br/>ng build (budgets enforced)"]
-  E --> F["Artifact<br/>dist/rimms browser + server"]
+  E --> F["Artifact<br/>dist/rimss browser + server"]
   F --> G{"Branch?"}
   G -- "feature/*" --> H["Preview environment"]
   G -- "main" --> I["Deploy DEV"]
@@ -24,7 +24,7 @@ flowchart LR
 | 2 | Format | `npm run lint:format` | Prettier clean |
 | 3 | Type check + tests | `npm run test:ci` | 100% suites green; business-layer coverage required |
 | 4 | Build | `npm run build` | Bundle budgets not exceeded; zero compiler errors |
-| 5 | Package | Upload `dist/rimms` | Browser assets and Angular Node server output |
+| 5 | Package | Upload `dist/rimss` | Browser assets and Angular Node server output |
 | 6 | Deploy | Deploy SSR host + browser assets | Manual approval for UAT and PROD |
 
 ## Build configuration

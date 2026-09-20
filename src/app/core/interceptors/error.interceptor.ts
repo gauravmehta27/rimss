@@ -5,7 +5,7 @@ import type { ApiError } from '../models/api.model';
 import { NotificationService } from '../services/notification.service';
 
 const FRIENDLY: Record<number, string> = {
-  0: 'We could not reach the RIMMS services. Check that the mock API is running.',
+  0: 'We could not reach the RIMSS services. Check that the mock API is running.',
   400: 'That request was not valid. Please review the highlighted fields.',
   404: 'We could not find what you were looking for.',
   409: 'Someone else changed this record. Refresh and try again.',

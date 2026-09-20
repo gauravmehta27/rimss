@@ -2,7 +2,7 @@ import type { AppConfig } from '../app/core/config/app-config';
 
 export const environment: AppConfig = {
   production: true,
-  appName: 'RIMMS',
+  appName: 'RIMSS',
   apiBaseUrl: 'http://localhost:3000/api',
   defaultCurrency: 'INR',
   defaultLocale: 'en-US',

@@ -39,7 +39,7 @@ describe('LayoutService', () => {
     const service = TestBed.inject(LayoutService);
     service.toggleSidebar();
     TestBed.inject(ApplicationRef).tick();
-    expect(localStorage.getItem('rimms.sidebar.collapsed')).toBe('true');
+    expect(localStorage.getItem('rimss.sidebar.collapsed')).toBe('true');
   });
 
   it('toggles the theme and mirrors it onto the document', () => {
@@ -50,7 +50,7 @@ describe('LayoutService', () => {
 
     expect(service.themeMode()).not.toBe(initial);
     expect(document.documentElement.getAttribute('data-bs-theme')).toBe(service.themeMode());
-    expect(localStorage.getItem('rimms.theme')).toBe(service.themeMode());
+    expect(localStorage.getItem('rimss.theme')).toBe(service.themeMode());
   });
 
   it('reacts to viewport resize for isMobile', () => {

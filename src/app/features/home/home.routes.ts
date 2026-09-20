@@ -3,7 +3,7 @@ import type { Routes } from '@angular/router';
 const routes: Routes = [
   {
     path: '',
-    title: 'RIMMS — Luxury countryside fashion',
+    title: 'RIMSS — Luxury countryside fashion',
     loadComponent: () => import('./home.component').then((m) => m.HomeComponent),
   },
 ];

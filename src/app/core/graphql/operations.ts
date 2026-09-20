@@ -1,9 +1,3 @@
-/**
- * Every GraphQL document the client sends, kept in one place so the server
- * contract is reviewable at a glance. Fragments are shared so list and detail
- * views can never drift apart on the fields they request.
- */
-
 const PRODUCT_SUMMARY_FRAGMENT = `
   fragment ProductSummary on Product {
     id
@@ -34,10 +28,6 @@ const PRODUCT_SUMMARY_FRAGMENT = `
   }
 `;
 
-/**
- * Results and facet counts in a single round trip — the catalogue screen needs
- * both to render, and GraphQL lets them share one request and one filter.
- */
 export const CATALOG_PAGE_QUERY = `
   query CatalogPage($filter: ProductFilterInput, $sort: ProductSort, $page: Int, $pageSize: Int) {
     products(filter: $filter, sort: $sort, page: $page, pageSize: $pageSize) {
