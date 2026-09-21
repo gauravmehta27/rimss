@@ -8,6 +8,9 @@ pipeline {
 
     environment {
         DEPLOY_DIR = 'C:\\builds\\RIMSS\\deploy'
+        SITE_URL = 'http://localhost:8085'
+        // Set to 'false' to skip live HTTP checks on agents without network access to the IIS site.
+        RUN_HTTP_SMOKE_TEST = 'true'
     }
 
     stages {
@@ -118,7 +121,9 @@ pipeline {
                 echo Deploying to:
                 echo %DEPLOY_DIR%
 
-                rem Deploy the browser bundle to the IIS site root.
+                rem Mirror the CONTENTS of browser\\ directly into DEPLOY_DIR (no nested browser\\ folder).
+                rem /MIR also removes stale files from prior runs (old hashed bundles, previously
+                rem generated index.html), keeping the deployment idempotent.
                 robocopy "%WORKSPACE%\\dist\\rimss\\browser" "%DEPLOY_DIR%" /MIR
 
                 set ROBOCOPY_RESULT=%ERRORLEVEL%
@@ -129,6 +134,27 @@ pipeline {
                 if %ROBOCOPY_RESULT% GEQ 8 (
                     echo ERROR: Deployment failed.
                     exit /b %ROBOCOPY_RESULT%
+                )
+
+                echo.
+                echo Resolving browser entry document for static IIS hosting...
+
+                rem Angular's server-output build (outputMode: server) emits index.csr.html, not
+                rem index.html. Prefer an existing index.html if present, otherwise derive one from
+                rem index.csr.html. Never assume index.html exists.
+                if exist "%DEPLOY_DIR%\\index.html" (
+                    echo Entry document: index.html already present in build output.
+                ) else if exist "%DEPLOY_DIR%\\index.csr.html" (
+                    echo Entry document: index.csr.html found; creating index.html for static IIS hosting.
+                    copy /Y "%DEPLOY_DIR%\\index.csr.html" "%DEPLOY_DIR%\\index.html" >nul
+                ) else (
+                    echo ERROR: Neither index.html nor index.csr.html found in %DEPLOY_DIR%.
+                    exit /b 1
+                )
+
+                if not exist "%DEPLOY_DIR%\\index.html" (
+                    echo ERROR: index.html could not be created in %DEPLOY_DIR%.
+                    exit /b 1
                 )
 
                 echo.
@@ -157,6 +183,55 @@ pipeline {
                 echo =====================================
                 echo RIMSS DEPLOYMENT SUCCESSFUL
                 echo =====================================
+
+                exit /b 0
+                '''
+            }
+        }
+
+        stage('Verify Deployment Artifact') {
+            steps {
+                powershell '''
+                $ErrorActionPreference = "Stop"
+                & "$env:WORKSPACE\\tools\\verify-deploy.ps1" `
+                    -DeployDir $env:DEPLOY_DIR `
+                    -SiteUrl $env:SITE_URL `
+                    -CatalogRoute "/catalog" `
+                    -RunHttpSmokeTest ([System.Convert]::ToBoolean($env:RUN_HTTP_SMOKE_TEST))
+                '''
+            }
+        }
+
+        stage('Verify IIS Configuration') {
+            steps {
+                bat '''
+                @echo off
+                setlocal
+
+                set "APPCMD=%windir%\\system32\\inetsrv\\appcmd.exe"
+
+                if not exist "%APPCMD%" (
+                    echo WARNING: appcmd.exe not found at %APPCMD%.
+                    echo Skipping IIS site/vdir diagnostics ^(is IIS Management installed on this agent?^).
+                    exit /b 0
+                )
+
+                echo ===== IIS SITES =====
+                "%APPCMD%" list site
+
+                echo.
+                echo ===== IIS VIRTUAL DIRECTORIES =====
+                "%APPCMD%" list vdir
+
+                echo.
+                echo ===== DEPLOY DIRECTORY CHECK =====
+                "%APPCMD%" list vdir | findstr /I /C:"%DEPLOY_DIR%" >nul
+                if errorlevel 1 (
+                    echo WARNING: No IIS virtual directory physical path matches %DEPLOY_DIR%.
+                    echo Verify manually that the site serving %SITE_URL% points to this folder.
+                ) else (
+                    echo OK: Found an IIS virtual directory physical path matching %DEPLOY_DIR%.
+                )
 
                 exit /b 0
                 '''
